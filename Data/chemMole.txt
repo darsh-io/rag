@@ -1,0 +1,129 @@
+TOPIC 2: THE MOLE CONCEPT
+
+BASIC DEFINITIONS
+
+mole
+amount of substance containing 6.02 x 10^23 particles
+
+Avogadro constant
+6.02 x 10^23 particles per mole
+
+Ar (relative atomic mass)
+average mass of an atom compared to 1/12 of carbon-12
+no unit
+
+Mr (relative molecular mass)
+sum of all Ar values in a molecule
+no unit
+
+molar mass
+mass of 1 mole of a substance
+unit: g/mol
+
+dm^3 (cubic decimetre)
+unit of volume
+1 dm^3 = 1 litre = 1000 cm^3
+
+rtp (room temperature and pressure)
+conditions where 1 mole of gas occupies 24 dm^3
+
+KEY FORMULAS
+
+moles = mass / molar mass
+mass = moles x molar mass
+
+number of particles = moles x 6.02 x 10^23
+moles = number of particles / 6.02 x 10^23
+
+volume = moles x 24 (for gases at rtp)
+moles = volume / 24
+
+CONVERSIONS
+
+mass <-> moles using molar mass
+moles <-> particles using Avogadro constant
+moles <-> volume using 24 dm^3 (rtp)
+
+PERCENTAGE COMPOSITION
+
+percentage = (mass of element in compound / Mr) x 100
+
+EMPIRICAL FORMULA STEPS
+
+assume total mass = 100 g
+convert mass to moles
+divide all by smallest value
+simplify to whole number ratio
+
+MOLECULAR FORMULA
+
+molecular formula = empirical formula x n
+n = Mr / empirical formula mass
+
+TOPIC 3: CHEMICAL CALCULATIONS
+
+BALANCED EQUATIONS
+
+must balance before calculations
+do not change formulas
+only change coefficients
+
+STOICHIOMETRY
+
+based on mole ratios from balanced equation
+mass is conserved
+
+CORE METHOD
+
+step 1 write balanced equation
+step 2 convert given value to moles
+step 3 use mole ratio from equation
+step 4 convert to required unit
+
+USING MOLAR MASS AND VOLUME
+
+use molar mass for solids and liquids
+use 24 dm^3 for gases at rtp
+
+GAS VOLUME RATIOS
+
+gas volumes follow mole ratios at same conditions
+
+LIMITING REACTANT
+
+reactant that runs out first
+determines amount of product formed
+
+steps:
+calculate moles of all reactants
+use mole ratio to compare
+reactant producing less product is limiting
+
+EXCESS REACTANT
+
+reactant left over after reaction
+
+PERCENTAGE YIELD
+
+percentage yield = (actual yield / theoretical yield) x 100
+
+theoretical yield = calculated maximum amount
+actual yield = amount obtained from experiment
+
+PERCENTAGE PURITY
+
+percentage purity = (mass of pure substance / total mass) x 100
+
+COMMON MISTAKES
+
+not balancing equation
+skipping mole conversion
+wrong mole ratio
+not using 24 dm^3 for gases
+ignoring significant figures
+
+FINAL FLOW
+
+mass -> moles -> ratio -> answer
+particles -> moles -> ratio -> answer
+volume -> moles -> ratio -> answer
