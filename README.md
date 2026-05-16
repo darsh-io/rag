@@ -1,1 +1,1 @@
-lowkey redoing this to build proper fundamentals
+lowkey redoing this to build proper fundamentalz
