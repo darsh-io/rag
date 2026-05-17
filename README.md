@@ -49,6 +49,8 @@ python main.py
 
 You'll be prompted to enter two sentences. The script prints their cosine similarity (0 = unrelated, 1 = identical meaning).
 
+COMMIT TYPES:
+```
 INIT   initialized project/file
 ADD    added feature
 DEL    removed something
@@ -59,3 +61,4 @@ TEST   tests added/updated
 CONF   config changes
 SEC    security improvements
 MISC   catch-all
+```
