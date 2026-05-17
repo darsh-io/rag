@@ -60,5 +60,6 @@ DOCS   documentation changes
 TEST   tests added/updated
 CONF   config changes
 SEC    security improvements
+IMPR   other types of improvements
 MISC   catch-all
 ```
