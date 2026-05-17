@@ -19,7 +19,7 @@ def setup():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model_name = config["model"]["name"]
+    model_name = config["embeddings-model"]["name"]
     api_url = "https://openrouter.ai/api/v1/embeddings"
 
     return api_key, api_url, model_name
