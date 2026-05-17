@@ -48,3 +48,14 @@ python main.py
 ```
 
 You'll be prompted to enter two sentences. The script prints their cosine similarity (0 = unrelated, 1 = identical meaning).
+
+INIT   initialized project/file
+ADD    added feature
+DEL    removed something
+FIX    fixed bug
+REF    refactor (no behavior change)
+DOCS   documentation changes
+TEST   tests added/updated
+CONF   config changes
+SEC    security improvements
+MISC   catch-all

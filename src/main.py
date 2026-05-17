@@ -3,8 +3,8 @@ import os
 import yaml
 from pathlib import Path
 
-from cosineSim import cosineSimilarity
-from embeddings import getEmbeddings
+from ragPipeline.cosineSim import cosineSimilarity
+from ragPipeline.embeddings import getEmbeddings
 
 
 def setup():
