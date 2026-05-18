@@ -2,4 +2,4 @@ embeddings-model:
   name: "nvidia/llama-nemotron-embed-vl-1b-v2:free"
 
 llm-model:
-  name: "deepseek/deepseek-v4-flash:free"
+  name: "google/gemma-4-26b-a4b-it:free"
