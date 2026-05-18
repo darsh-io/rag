@@ -3,8 +3,7 @@ import os
 import yaml
 from pathlib import Path
 
-from ragPipeline.cosineSim import cosineSimilarity
-from ragPipeline.embeddings import getEmbeddings
+from ragPipeline.vectorstore import get_collection, ingest, query
 
 
 def setup():
@@ -25,27 +24,27 @@ def setup():
     return api_key, api_url, model_name
 
 
-def get_embedding_similarity(q1, q2, api_key, api_url, model_name):
-    e1 = getEmbeddings(api_key, api_url, model_name, q1)
-    e2 = getEmbeddings(api_key, api_url, model_name, q2)
-    return cosineSimilarity(e1, e2)
-
-
 def main():
     api_key, api_url, model_name = setup()
 
-    q1 = input("Enter the first sentence: ")
-    q2 = input("Enter the second sentence: ")
+    db_path = str(Path(__file__).parent.parent / "chroma_db")
+    collection = get_collection(db_path=db_path)
 
-    similarity = get_embedding_similarity(
-        q1,
-        q2,
-        api_key,
-        api_url,
-        model_name
-    )
+    mode = input("Mode (ingest/query): ").strip().lower()
 
-    print(f"Cosine similarity: {similarity}")
+    if mode == "ingest":
+        file_path = input("PDF path: ").strip()
+        ingest(file_path, collection, api_key, api_url, model_name)
+
+    elif mode == "query":
+        question = input("Question: ").strip()
+        results = query(question, collection, api_key, api_url, model_name)
+        for i, (doc, meta) in enumerate(zip(results["documents"][0], results["metadatas"][0])):
+            print(f"\n[{i+1}] Source: {meta['source']} | Page: {meta['page']}")
+            print(doc)
+
+    else:
+        print("Unknown mode. Use 'ingest' or 'query'.")
 
 
 if __name__ == "__main__":
