@@ -1,3 +1,5 @@
 python-dotenv
 pyyaml
 requests
+pypdf
+chromadb

@@ -4,17 +4,17 @@ A 21-day ground-up build of a production RAG (Retrieval-Augmented Generation) sy
 
 ## What it is
 
-A document Q&A system that lets you ask questions about your own files and get grounded, cited answers. Built incrementally: embeddings first, then chunking, vector storage, retrieval, reranking, a FastAPI backend, a streaming frontend, and finally deployed to a live URL.
+A document Q&A system that lets you ask questions about your own files and get grounded, cited answers. Built incrementally: embeddings first, then chunking, vector storage, retrieval, reranking, a FastAPI backend, a streaming frontend, and finally run end-to-end locally.
 
 **Planned stack**
 
 | Layer | Tool |
 |---|---|
 | LLM + Embeddings | OpenRouter |
-| Vector DB | Qdrant Cloud |
+| Vector DB | Chroma (local) |
 | Backend | FastAPI |
 | Frontend | HTML / CSS / JS |
-| Deployment | Railway |
+| Deployment | Local run (startup script) |
 | Reranking | Cohere (free tier) |
 
 ## Current state — Day 1
