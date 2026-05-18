@@ -4,3 +4,4 @@ misc/
 .CLAUDE.md
 __pycache__/
 *.pyc
+chroma_db/
