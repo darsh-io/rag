@@ -33,7 +33,7 @@ def main():
     mode = input("Mode (ingest/query): ").strip().lower()
 
     if mode == "ingest":
-        file_path = input("PDF path: ").strip()
+        file_path = input("PDF path: ").strip().strip('"')
         ingest(file_path, collection, api_key, api_url, model_name)
 
     elif mode == "query":
