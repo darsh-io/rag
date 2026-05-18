@@ -24,4 +24,5 @@ Answer:"""
             "messages": [{"role": "user", "content": prompt}],
         }),
     )
-    return rq.json()["choices"][0]["message"]["content"]
+    message = rq.json()["choices"][0]["message"]
+    return message["content"] or message.get("reasoning")
