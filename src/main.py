@@ -4,6 +4,7 @@ import yaml
 from pathlib import Path
 
 from ragPipeline.vectorstore import get_collection, ingest, query
+from ragPipeline.llm import answer
 
 
 def setup():
@@ -18,14 +19,16 @@ def setup():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model_name = config["embeddings-model"]["name"]
-    api_url = "https://openrouter.ai/api/v1/embeddings"
+    embed_model = config["embeddings-model"]["name"]
+    llm_model = config["llm-model"]["name"]
+    embed_url = "https://openrouter.ai/api/v1/embeddings"
+    chat_url = "https://openrouter.ai/api/v1/chat/completions"
 
-    return api_key, api_url, model_name
+    return api_key, embed_url, embed_model, chat_url, llm_model
 
 
 def main():
-    api_key, api_url, model_name = setup()
+    api_key, embed_url, embed_model, chat_url, llm_model = setup()
 
     db_path = str(Path(__file__).parent.parent / "chroma_db")
     collection = get_collection(db_path=db_path)
@@ -34,14 +37,13 @@ def main():
 
     if mode == "ingest":
         file_path = input("PDF path: ").strip().strip('"')
-        ingest(file_path, collection, api_key, api_url, model_name)
+        ingest(file_path, collection, api_key, embed_url, embed_model)
 
     elif mode == "query":
         question = input("Question: ").strip()
-        results = query(question, collection, api_key, api_url, model_name)
-        for i, (doc, meta) in enumerate(zip(results["documents"][0], results["metadatas"][0])):
-            print(f"\n[{i+1}] Source: {meta['source']} | Page: {meta['page']}")
-            print(doc)
+        results = query(question, collection, api_key, embed_url, embed_model)
+        response = answer(question, results, api_key, chat_url, llm_model)
+        print(f"\nAnswer: {response}")
 
     else:
         print("Unknown mode. Use 'ingest' or 'query'.")
