@@ -20,7 +20,7 @@ def ingest(file_path, collection, api_key, api_url, model):
     print(f"Ingested {len(chunks)} chunks from {file_path}")
 
 
-def query(query_text, collection, api_key, api_url, model, n_results=5):
+def query(query_text, collection, api_key, api_url, model, n_results=1):
     embedding = getEmbeddings(api_key, api_url, model, query_text)
     results = collection.query(query_embeddings=[embedding], n_results=n_results)
     return results
