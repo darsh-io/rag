@@ -24,5 +24,8 @@ Answer:"""
             "messages": [{"role": "user", "content": prompt}],
         }),
     )
-    message = rq.json()["choices"][0]["message"]
+    body = rq.json()
+    if "choices" not in body:
+        raise RuntimeError(f"OpenRouter error: {body}")
+    message = body["choices"][0]["message"]
     return message["content"] or message.get("reasoning")
