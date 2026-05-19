@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from ragPipeline.vectorstore import get_collection, query as chroma_query
-from ragPipeline.embeddings import getEmbeddings
+from ragPipeline.reranker import rerank
 
 
 PROMPT_TEMPLATE = """\
@@ -50,9 +50,10 @@ def call_llm(prompt, api_key, chat_url, llm_model):
     return message["content"] or message.get("reasoning")
 
 
-def rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model):
-    results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=5)
-    chunks = build_context(results)
+def rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model):
+    results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
+    candidates = build_context(results)
+    chunks = rerank(question, candidates, cohere_api_key, reranker_model, top_n=5)
 
     context_block = "\n\n".join(
         f"[{i}] Source: {meta['source']} | Page: {meta['page']}\n{doc}"
@@ -61,17 +62,16 @@ def rag_query(question, collection, api_key, embed_url, embed_model, chat_url, l
     prompt = PROMPT_TEMPLATE.format(context=context_block, question=question)
     answer = call_llm(prompt, api_key, chat_url, llm_model)
 
-    # --- print formatted output ---
     sep = "─" * 72
 
     print(f"\n{sep}")
     print(f"  QUESTION: {question}")
     print(sep)
 
-    print("\n  RETRIEVED CHUNKS (top 5)\n")
+    print("\n  RETRIEVED CHUNKS (reranked, top 5)\n")
     for i, doc, meta, score in chunks:
         preview = doc[:200].replace("\n", " ")
-        print(f"  [{i}] {meta['source']} | p.{meta['page']} | score: {score:.4f}")
+        print(f"  [{i}] {meta['source']} | p.{meta['page']} | relevance: {score:.4f}")
         print(f"      {preview}…")
         print()
 
@@ -86,8 +86,11 @@ def rag_query(question, collection, api_key, embed_url, embed_model, chat_url, l
 if __name__ == "__main__":
     load_dotenv()
     api_key = os.getenv("OPENROUTER_API_KEY")
+    cohere_api_key = os.getenv("COHERE_API_KEY")
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY missing in .env")
+    if not cohere_api_key:
+        raise ValueError("COHERE_API_KEY missing in .env")
 
     config_path = Path(__file__).parent.parent / "config" / "config.yaml"
     with open(config_path, "r") as f:
@@ -95,6 +98,7 @@ if __name__ == "__main__":
 
     embed_model = config["embeddings-model"]["name"]
     llm_model = config["llm-model"]["name"]
+    reranker_model = config["reranker-model"]["name"]
     embed_url = "https://openrouter.ai/api/v1/embeddings"
     chat_url = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -102,4 +106,4 @@ if __name__ == "__main__":
     collection = get_collection(db_path=db_path)
 
     question = input("Question: ").strip()
-    rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model)
+    rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model)
