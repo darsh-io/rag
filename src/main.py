@@ -3,8 +3,8 @@ import os
 import yaml
 from pathlib import Path
 
-from ragPipeline.vectorstore import get_collection, ingest, query
-from ragPipeline.llm import answer
+from ragPipeline.vectorstore import get_collection, ingest
+from query import rag_query
 
 
 def setup():
@@ -41,9 +41,7 @@ def main():
 
     elif mode == "query":
         question = input("Question: ").strip()
-        results = query(question, collection, api_key, embed_url, embed_model)
-        response = answer(question, results, api_key, chat_url, llm_model)
-        print(f"\nAnswer: {response}")
+        rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model)
 
     else:
         print("Unknown mode. Use 'ingest' or 'query'.")
