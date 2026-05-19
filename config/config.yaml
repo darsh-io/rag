@@ -3,3 +3,6 @@ embeddings-model:
 
 llm-model:
   name: "openrouter/owl-alpha"
+
+reranker-model:
+  name: "rerank-v3.5"
