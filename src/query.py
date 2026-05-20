@@ -7,6 +7,8 @@ from pathlib import Path
 
 from ragPipeline.vectorstore import get_collection, query as chroma_query
 from ragPipeline.reranker import rerank
+from ragPipeline.bm25 import bm25_search
+from ragPipeline.rrf import reciprocal_rank_fusion
 
 
 PROMPT_TEMPLATE = """\
@@ -20,18 +22,6 @@ Context:
 Question: {question}
 
 Answer (with inline citations):"""
-
-
-def build_context(results):
-    parts = []
-    for i, (doc, meta, dist) in enumerate(zip(
-        results["documents"][0],
-        results["metadatas"][0],
-        results["distances"][0],
-    )):
-        similarity = 1 - dist  # Chroma cosine distance → similarity
-        parts.append((i + 1, doc, meta, similarity))
-    return parts
 
 
 def call_llm(prompt, api_key, chat_url, llm_model):
@@ -51,9 +41,26 @@ def call_llm(prompt, api_key, chat_url, llm_model):
 
 
 def rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model):
-    results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
-    candidates = build_context(results)
-    chunks = rerank(question, candidates, cohere_api_key, reranker_model, top_n=5)
+    # Dense retrieval (top 10)
+    dense_results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
+    dense_ranked = [
+        {"id": id_, "doc": doc, "meta": meta, "rank": rank}
+        for rank, (id_, doc, meta) in enumerate(zip(
+            dense_results["ids"][0],
+            dense_results["documents"][0],
+            dense_results["metadatas"][0],
+        ), start=1)
+    ]
+
+    # Sparse BM25 retrieval (top 10) over full corpus
+    all_data = collection.get()
+    sparse_ranked = bm25_search(question, all_data["ids"], all_data["documents"], all_data["metadatas"], top_n=10)
+
+    # RRF fusion → top 10 candidates
+    fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=10)
+
+    # Cohere rerank → top 5
+    chunks = rerank(question, fused, cohere_api_key, reranker_model, top_n=5)
 
     context_block = "\n\n".join(
         f"[{i}] Source: {meta['source']} | Page: {meta['page']}\n{doc}"
