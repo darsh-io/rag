@@ -3,3 +3,4 @@ pyyaml
 requests
 pypdf
 chromadb
+rank-bm25

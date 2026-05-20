@@ -46,7 +46,7 @@ def main():
     elif mode == "query":
         question = input("Question: ").strip()
         rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model)
-
+    
     else:
         print("Unknown mode. Use 'ingest' or 'query'.")
 
