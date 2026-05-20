@@ -25,6 +25,6 @@ def query(query_text, collection, api_key, api_url, model, n_results=5):
     results = collection.query(
         query_embeddings=[embedding],
         n_results=n_results,
-        include=["documents", "metadatas", "distances"],
+        include=["documents", "metadatas", "distances", "ids"],
     )
     return results
