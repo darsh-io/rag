@@ -8,6 +8,7 @@ from query import rag_query
 
 
 def setup():
+    """Load env vars and config.yaml, returning all credentials and model settings as a dict."""
     load_dotenv()
 
     api_key = os.getenv("OPENROUTER_API_KEY")
