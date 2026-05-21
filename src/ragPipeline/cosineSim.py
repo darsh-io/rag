@@ -1,4 +1,5 @@
 def cosineSimilarity(a, b):
+    """Return the cosine similarity between two equal-length vectors, in pure Python."""
     dot = 0
 
     for i in range(len(a)):
