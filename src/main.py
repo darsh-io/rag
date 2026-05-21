@@ -18,31 +18,50 @@ def setup():
         raise ValueError("COHERE_API_KEY missing in .env")
 
     config_path = Path(__file__).parent.parent / "config" / "config.yaml"
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
     return {
         "api_key": api_key,
         "cohere_api_key": cohere_api_key,
-        "embed_url": "https://openrouter.ai/api/v1/embeddings",
-        "chat_url": "https://openrouter.ai/api/v1/chat/completions",
         "embed_model": config["embeddings-model"]["name"],
         "llm_model": config["llm-model"]["name"],
         "reranker_model": config["reranker-model"]["name"],
+        "embed_url": "https://openrouter.ai/api/v1/embeddings",
+        "chat_url": "https://openrouter.ai/api/v1/chat/completions",
     }
 
 
-def query_loop(collection, cfg):
-    print("Query mode — conversation history is active. Type /quit to return to menu.\n")
-    all_data = collection.get()  # fetch once; reused for BM25 every turn
+def run_ingest(cfg, collection):
+    file_path = input("PDF path: ").strip().strip('"')
+    ingest(file_path, collection, cfg["api_key"], cfg["embed_url"], cfg["embed_model"])
+
+
+def run_query_loop(cfg, collection):
     history = []
+    print("Query mode — /quit to exit, /clear to reset history.\n")
+
     while True:
         question = input("Question: ").strip()
-        if question.lower() == "/quit":
+
+        if question == "/quit":
             break
+        if question == "/clear":
+            history.clear()
+            print("History cleared.\n")
+            continue
         if not question:
             continue
-        rag_query(question, history, collection, all_data, cfg)
+
+        answer = rag_query(
+            question, history, collection,
+            cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
+            cfg["chat_url"], cfg["llm_model"],
+            cfg["cohere_api_key"], cfg["reranker_model"],
+        )
+
+        history.append({"role": "user", "content": question})
+        history.append({"role": "assistant", "content": answer})
 
 
 def main():
@@ -50,17 +69,14 @@ def main():
     db_path = str(Path(__file__).parent.parent / "chroma_db")
     collection = get_collection(db_path=db_path)
 
-    print("RAG System — type /quit to exit\n")
     while True:
-        mode = input("Mode (ingest/query/quit): ").strip().lower()
-        if mode in ("/quit", "quit"):
-            print("Bye.")
+        mode = input("\nMode (ingest/query/quit): ").strip().lower()
+        if mode == "quit":
             break
         elif mode == "ingest":
-            file_path = input("PDF path: ").strip().strip('"')
-            ingest(file_path, collection, cfg["api_key"], cfg["embed_url"], cfg["embed_model"])
+            run_ingest(cfg, collection)
         elif mode == "query":
-            query_loop(collection, cfg)
+            run_query_loop(cfg, collection)
         else:
             print("Unknown mode. Use 'ingest', 'query', or 'quit'.")
 
