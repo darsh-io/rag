@@ -10,6 +10,7 @@ def get_collection(db_path="chroma_db", collection_name="documents"):
 
 
 def ingest(file_path, collection, api_key, api_url, model):
+    """Chunk a PDF, embed each chunk, and upsert everything into the Chroma collection."""
     chunks = chunk_pdf(file_path)
 
     ids = [f"{chunk['source']}_chunk{chunk['chunk_index']}" for chunk in chunks]
