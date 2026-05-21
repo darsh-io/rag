@@ -10,16 +10,17 @@ def chunk_pdf(file_path, chunk_size=1000, overlap=200):
     for page_num, page in enumerate(pdf.pages):
         pages.append((page_num + 1, page.extract_text() or ""))
 
+    # flatten all pages into one string while recording which page each character belongs to
     full_text = ""
     char_to_page = []
     for page_num, text in pages:
         full_text += text
         char_to_page.extend([page_num] * len(text))
 
-    # split into sentences
+    # lookbehind on .!? keeps the punctuation attached to the sentence that ends with it
     sentences = re.split(r'(?<=[.!?])\s+', full_text)
-    
-    # track character position of each sentence for page lookup
+
+    # record the start character of each sentence so we can map it back to a page number
     sentence_positions = []
     pos = 0
     for sentence in sentences:
@@ -45,6 +46,7 @@ def chunk_pdf(file_path, chunk_size=1000, overlap=200):
 
         chunk_text = " ".join(chunk_sentences)
         char_pos = sentence_positions[i]
+        # clamp to last index in case rounding puts us one past the end
         page = char_to_page[min(char_pos, len(char_to_page) - 1)]
 
         chunks.append({
