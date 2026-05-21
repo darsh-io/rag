@@ -3,6 +3,7 @@ import json
 
 
 def getEmbeddings(api_key, api_url, model, text):
+    """Return the embedding vector for text using the given OpenRouter model."""
     rq = requests.post(
         url=api_url,
         headers={
