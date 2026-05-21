@@ -5,10 +5,7 @@ COHERE_RERANK_URL = "https://api.cohere.com/v2/rerank"
 
 
 def rerank(question, chunks, api_key, model, top_n=5):
-    """
-    chunks: list of (rank, doc, meta, score) from build_context
-    returns: top_n chunks re-ordered and re-numbered by Cohere relevance score
-    """
+    """Re-order chunks by Cohere relevance score and return the top_n with updated ranks."""
     documents = [doc for _, doc, _, _ in chunks]
 
     rq = requests.post(
