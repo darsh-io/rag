@@ -40,6 +40,7 @@ def run_ingest(cfg, collection):
 
 
 def run_query_loop(cfg, collection):
+    """Run an interactive question loop with persistent history until /quit is entered."""
     history = []
     print("Query mode — /quit to exit, /clear to reset history.\n")
 
