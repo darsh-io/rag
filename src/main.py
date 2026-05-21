@@ -35,6 +35,7 @@ def setup():
 
 def run_ingest(cfg, collection):
     """Prompt for a PDF path and ingest it into the collection."""
+    # strip('"') handles Windows drag-and-drop paths that arrive wrapped in quotes
     file_path = input("PDF path: ").strip().strip('"')
     ingest(file_path, collection, cfg["api_key"], cfg["embed_url"], cfg["embed_model"])
 
@@ -63,6 +64,7 @@ def run_query_loop(cfg, collection):
             cfg["cohere_api_key"], cfg["reranker_model"],
         )
 
+        # append after the call so history never contains an unanswered question
         history.append({"role": "user", "content": question})
         history.append({"role": "assistant", "content": answer})
 
