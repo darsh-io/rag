@@ -23,6 +23,7 @@ def ingest(file_path, collection, api_key, api_url, model):
 
 
 def query(query_text, collection, api_key, api_url, model, n_results=5):
+    """Embed query_text and return the n_results nearest chunks from the Chroma collection."""
     embedding = getEmbeddings(api_key, api_url, model, query_text)
     results = collection.query(
         query_embeddings=[embedding],
