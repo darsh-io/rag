@@ -34,6 +34,7 @@ def setup():
 
 
 def run_ingest(cfg, collection):
+    """Prompt for a PDF path and ingest it into the collection."""
     file_path = input("PDF path: ").strip().strip('"')
     ingest(file_path, collection, cfg["api_key"], cfg["embed_url"], cfg["embed_model"])
 
