@@ -32,6 +32,7 @@ def call_llm(messages, api_key, chat_url, llm_model):
 
 
 def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model):
+    """Run the full RAG pipeline — retrieve, fuse, rerank, then answer with conversation history."""
     # Dense retrieval (top 10)
     dense_results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
     dense_ranked = [
