@@ -4,6 +4,7 @@ from ragPipeline.embeddings import getEmbeddings
 
 
 def get_collection(db_path="chroma_db", collection_name="documents"):
+    """Open or create a persistent Chroma collection with cosine similarity space."""
     client = chromadb.PersistentClient(path=db_path)
     return client.get_or_create_collection(name=collection_name, metadata={"hnsw:space": "cosine"})
 
