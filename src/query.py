@@ -18,6 +18,7 @@ Rules:
 
 
 def call_llm(messages, api_key, chat_url, llm_model):
+    """Send a messages list to the OpenRouter chat API and return the assistant's reply."""
     rq = requests.post(
         url=chat_url,
         headers={"Authorization": f"Bearer {api_key}"},
