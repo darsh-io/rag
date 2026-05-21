@@ -2,6 +2,7 @@ from rank_bm25 import BM25Okapi
 
 
 def bm25_search(question, ids, docs, metadatas, top_n=10):
+    """Score all docs with BM25Okapi and return the top_n as ranked dicts."""
     tokenized_corpus = [doc.lower().split() for doc in docs]
     bm25 = BM25Okapi(tokenized_corpus)
     scores = bm25.get_scores(question.lower().split())
