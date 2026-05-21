@@ -68,6 +68,7 @@ def run_query_loop(cfg, collection):
 
 
 def main():
+    """Entry point: set up config, open the vector store, and dispatch to ingest or query mode."""
     cfg = setup()
     db_path = str(Path(__file__).parent.parent / "chroma_db")
     collection = get_collection(db_path=db_path)
