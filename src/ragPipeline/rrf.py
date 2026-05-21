@@ -1,8 +1,5 @@
 def reciprocal_rank_fusion(ranked_lists, k=60, top_n=10):
-    """
-    ranked_lists: list of lists, each item is {"id", "doc", "meta", "rank"}
-    returns: top_n as [(rank, doc, meta, rrf_score)]
-    """
+    """Fuse multiple ranked lists via RRF and return the top_n as (rank, doc, meta, score) tuples."""
     scores = {}
     items = {}
 
