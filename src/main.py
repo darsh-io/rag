@@ -18,37 +18,51 @@ def setup():
         raise ValueError("COHERE_API_KEY missing in .env")
 
     config_path = Path(__file__).parent.parent / "config" / "config.yaml"
-
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    embed_model = config["embeddings-model"]["name"]
-    llm_model = config["llm-model"]["name"]
-    reranker_model = config["reranker-model"]["name"]
-    embed_url = "https://openrouter.ai/api/v1/embeddings"
-    chat_url = "https://openrouter.ai/api/v1/chat/completions"
+    return {
+        "api_key": api_key,
+        "cohere_api_key": cohere_api_key,
+        "embed_url": "https://openrouter.ai/api/v1/embeddings",
+        "chat_url": "https://openrouter.ai/api/v1/chat/completions",
+        "embed_model": config["embeddings-model"]["name"],
+        "llm_model": config["llm-model"]["name"],
+        "reranker_model": config["reranker-model"]["name"],
+    }
 
-    return api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model
+
+def query_loop(collection, cfg):
+    print("Query mode — conversation history is active. Type /quit to return to menu.\n")
+    all_data = collection.get()  # fetch once; reused for BM25 every turn
+    history = []
+    while True:
+        question = input("Question: ").strip()
+        if question.lower() == "/quit":
+            break
+        if not question:
+            continue
+        rag_query(question, history, collection, all_data, cfg)
 
 
 def main():
-    api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model = setup()
-
+    cfg = setup()
     db_path = str(Path(__file__).parent.parent / "chroma_db")
     collection = get_collection(db_path=db_path)
 
-    mode = input("Mode (ingest/query): ").strip().lower()
-
-    if mode == "ingest":
-        file_path = input("PDF path: ").strip().strip('"')
-        ingest(file_path, collection, api_key, embed_url, embed_model)
-
-    elif mode == "query":
-        question = input("Question: ").strip()
-        rag_query(question, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model)
-    
-    else:
-        print("Unknown mode. Use 'ingest' or 'query'.")
+    print("RAG System — type /quit to exit\n")
+    while True:
+        mode = input("Mode (ingest/query/quit): ").strip().lower()
+        if mode in ("/quit", "quit"):
+            print("Bye.")
+            break
+        elif mode == "ingest":
+            file_path = input("PDF path: ").strip().strip('"')
+            ingest(file_path, collection, cfg["api_key"], cfg["embed_url"], cfg["embed_model"])
+        elif mode == "query":
+            query_loop(collection, cfg)
+        else:
+            print("Unknown mode. Use 'ingest', 'query', or 'quit'.")
 
 
 if __name__ == "__main__":
