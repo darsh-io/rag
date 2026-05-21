@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 
 def chunk_pdf(file_path, chunk_size=1000, overlap=200):
+    """Split a PDF into overlapping sentence-aware chunks with source and page metadata."""
     pdf = pypdf.PdfReader(file_path)
 
     pages = []
