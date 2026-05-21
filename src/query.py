@@ -28,6 +28,7 @@ def call_llm(messages, api_key, chat_url, llm_model):
     if "choices" not in body:
         raise RuntimeError(f"OpenRouter error: {body}")
     message = body["choices"][0]["message"]
+    # reasoning models return content=None and put their output in "reasoning"
     return message["content"] or message.get("reasoning")
 
 
@@ -44,7 +45,7 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
         ), start=1)
     ]
 
-    # Sparse BM25 retrieval (top 10)
+    # Sparse BM25 retrieval (top 10) — fetches entire corpus each call; acceptable at demo scale
     all_data = collection.get()
     sparse_ranked = bm25_search(question, all_data["ids"], all_data["documents"], all_data["metadatas"], top_n=10)
 
@@ -57,6 +58,7 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
         for i, doc, meta, _ in chunks
     )
 
+    # context goes in the user turn so the model sees it alongside the question each time
     messages = (
         [{"role": "system", "content": SYSTEM_PROMPT}]
         + history
