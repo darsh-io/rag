@@ -98,3 +98,4 @@ Format: `TAG: Short description` (e.g., `ADD: Chroma vector store integration`)
 - **OpenRouter only:** All LLM and embedding calls go through `https://openrouter.ai/api/v1/`. Key in `.env` as `OPENROUTER_API_KEY`.
 - **Cohere for reranking:** Rerank endpoint is `https://api.cohere.com/v2/rerank`. Key in `.env` as `COHERE_API_KEY`.
 - **Pure Python math:** `cosineSim.py` uses no numpy — keep it that way unless there's a strong reason.
+
