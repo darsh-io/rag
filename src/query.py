@@ -32,7 +32,7 @@ def call_llm(messages, api_key, chat_url, llm_model):
     return message["content"] or message.get("reasoning")
 
 
-def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model):
+def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
     """Run the full RAG pipeline — retrieve, fuse, rerank, then answer with conversation history."""
     # Dense retrieval (top 10)
     dense_results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
@@ -49,9 +49,9 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
     all_data = collection.get()
     sparse_ranked = bm25_search(question, all_data["ids"], all_data["documents"], all_data["metadatas"], top_n=10)
 
-    # RRF fusion → top 10, then Cohere rerank → top 5
+    # RRF fusion → top 10, then Cohere rerank → top_k
     fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=10)
-    chunks = rerank(question, fused, cohere_api_key, reranker_model, top_n=5)
+    chunks = rerank(question, fused, cohere_api_key, reranker_model, top_n=top_k)
 
     context_block = "\n\n".join(
         f"[{i}] Source: {meta['source']} | Page: {meta['page']}\n{doc}"
@@ -81,4 +81,4 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
     print(f"  {answer.strip()}")
     print(f"\n{sep}\n")
 
-    return answer
+    return answer, chunks

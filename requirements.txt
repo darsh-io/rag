@@ -3,3 +3,6 @@ pyyaml
 requests
 pypdf
 chromadb
+fastapi
+uvicorn
+python-multipart

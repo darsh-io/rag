@@ -22,6 +22,7 @@ def ingest(file_path, collection, api_key, api_url, model):
 
     collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)
     print(f"Ingested {len(chunks)} chunks from {file_path}")
+    return len(chunks)
 
 
 def query(query_text, collection, api_key, api_url, model, n_results=5):

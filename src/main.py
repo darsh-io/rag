@@ -57,7 +57,7 @@ def run_query_loop(cfg, collection):
         if not question:
             continue
 
-        answer = rag_query(
+        answer, _ = rag_query(
             question, history, collection,
             cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
             cfg["chat_url"], cfg["llm_model"],
