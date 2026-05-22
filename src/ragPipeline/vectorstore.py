@@ -30,7 +30,7 @@ def query(query_text, collection, api_key, api_url, model, n_results=5):
     results = collection.query(
         query_embeddings=[embedding],
         n_results=n_results,
-        # ids are needed to feed into BM25/RRF later; distances are kept for potential debugging
-        include=["documents", "metadatas", "distances", "ids"],
+        # ids are always returned by Chroma and cannot be listed in include
+        include=["documents", "metadatas", "distances"],
     )
     return results
