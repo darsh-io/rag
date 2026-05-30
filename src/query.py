@@ -17,23 +17,8 @@ Rules:
 - You may use prior conversation turns to resolve follow-up questions, but still ground all answers in the retrieved context."""
 
 
-def call_llm(messages, api_key, chat_url, llm_model):
-    """Send a messages list to the OpenRouter chat API and return the assistant's reply."""
-    rq = requests.post(
-        url=chat_url,
-        headers={"Authorization": f"Bearer {api_key}"},
-        data=json.dumps({"model": llm_model, "messages": messages}),
-    )
-    body = rq.json()
-    if "choices" not in body:
-        raise RuntimeError(f"OpenRouter error: {body}")
-    message = body["choices"][0]["message"]
-    # reasoning models return content=None and put their output in "reasoning"
-    return message["content"] or message.get("reasoning")
-
-
-def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
-    """Run the full RAG pipeline — retrieve, fuse, rerank, then answer with conversation history."""
+def build_rag_context(question, history, collection, api_key, embed_url, embed_model, cohere_api_key, reranker_model, top_k=5):
+    """Run retrieval, fusion, and reranking; return (chunks, messages) ready for the LLM."""
     # Dense retrieval (top 10)
     dense_results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
     dense_ranked = [
@@ -64,13 +49,64 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
         + history
         + [{"role": "user", "content": f"Context:\n{context_block}\n\nQuestion: {question}"}]
     )
+
+    return chunks, messages
+
+
+def call_llm(messages, api_key, chat_url, llm_model):
+    """Send a messages list to the OpenRouter chat API and return the assistant's reply."""
+    rq = requests.post(
+        url=chat_url,
+        headers={"Authorization": f"Bearer {api_key}"},
+        data=json.dumps({"model": llm_model, "messages": messages}),
+    )
+    body = rq.json()
+    if "choices" not in body:
+        raise RuntimeError(f"OpenRouter error: {body}")
+    message = body["choices"][0]["message"]
+    # reasoning models return content=None and put their output in "reasoning"
+    return message["content"] or message.get("reasoning")
+
+
+def call_llm_stream(messages, api_key, chat_url, llm_model):
+    """Yield text deltas from the LLM as they arrive using OpenRouter SSE streaming."""
+    rq = requests.post(
+        url=chat_url,
+        headers={"Authorization": f"Bearer {api_key}"},
+        data=json.dumps({"model": llm_model, "messages": messages, "stream": True}),
+        stream=True,
+    )
+    for line in rq.iter_lines():
+        if not line:
+            continue
+        text = line.decode("utf-8") if isinstance(line, bytes) else line
+        if not text.startswith("data: "):
+            continue
+        payload = text[6:]
+        if payload == "[DONE]":
+            break
+        try:
+            delta = json.loads(payload)["choices"][0]["delta"].get("content") or ""
+            if delta:
+                yield delta
+        except (json.JSONDecodeError, KeyError, IndexError):
+            continue
+
+
+def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
+    """Run the full RAG pipeline — retrieve, fuse, rerank, then answer with conversation history."""
+    chunks, messages = build_rag_context(
+        question, history, collection,
+        api_key, embed_url, embed_model,
+        cohere_api_key, reranker_model, top_k,
+    )
     answer = call_llm(messages, api_key, chat_url, llm_model)
 
     sep = "─" * 72
     print(f"\n{sep}")
     print(f"  QUESTION: {question}")
     print(sep)
-    print("\n  RETRIEVED CHUNKS (reranked, top 5)\n")
+    print(f"\n  RETRIEVED CHUNKS (reranked, top {top_k})\n")
     for i, doc, meta, score in chunks:
         preview = doc[:200].replace("\n", " ")
         print(f"  [{i}] {meta['source']} | p.{meta['page']} | relevance: {score:.4f}")

@@ -1,3 +1,5 @@
+import asyncio
+import json
 import os
 import tempfile
 from contextlib import asynccontextmanager
@@ -6,9 +8,10 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from query import rag_query
+from query import build_rag_context, call_llm, call_llm_stream, rag_query
 from ragPipeline.vectorstore import get_collection, ingest
 
 
@@ -101,7 +104,7 @@ async def ingest_endpoint(request: Request, file: UploadFile = File(...)):
 
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(request: Request, body: QueryRequest):
-    """Run the RAG pipeline for a question and return the answer with cited sources."""
+    """Run the RAG pipeline for a question and return the full answer with cited sources."""
     if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question must not be empty.")
 
@@ -122,3 +125,53 @@ async def query_endpoint(request: Request, body: QueryRequest):
     ]
 
     return QueryResponse(answer=answer, sources=sources)
+
+
+@app.post("/query/stream")
+async def query_stream_endpoint(request: Request, body: QueryRequest):
+    """Stream the LLM answer token-by-token as SSE; sources are sent as the first event."""
+    if not body.question.strip():
+        raise HTTPException(status_code=400, detail="Question must not be empty.")
+
+    cfg = request.app.state.cfg
+
+    # retrieval is synchronous — run it in a thread so we don't block the event loop
+    chunks, messages = await asyncio.to_thread(
+        build_rag_context,
+        body.question, [], request.app.state.collection,
+        cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
+        cfg["cohere_api_key"], cfg["reranker_model"],
+        body.top_k,
+    )
+
+    sources = [
+        {"source": meta["source"], "page": meta["page"], "relevance": round(score, 4)}
+        for _, _, meta, score in chunks
+    ]
+
+    async def event_stream():
+        # first event: all sources so the client can render citations immediately
+        yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
+
+        # stream LLM deltas from a background thread via a queue
+        queue: asyncio.Queue = asyncio.Queue()
+        loop = asyncio.get_event_loop()
+
+        def stream_in_thread():
+            try:
+                for delta in call_llm_stream(messages, cfg["api_key"], cfg["chat_url"], cfg["llm_model"]):
+                    loop.call_soon_threadsafe(queue.put_nowait, delta)
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, None)  # sentinel
+
+        asyncio.get_event_loop().run_in_executor(None, stream_in_thread)
+
+        while True:
+            delta = await queue.get()
+            if delta is None:
+                break
+            yield f"data: {json.dumps({'type': 'delta', 'text': delta})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
