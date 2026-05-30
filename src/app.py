@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
 from query import build_rag_context, call_llm, call_llm_stream, rag_query
@@ -78,6 +78,13 @@ app = FastAPI(title="RAGged", lifespan=lifespan)
 
 
 # --- Endpoints ---------------------------------------------------------------
+
+@app.get("/")
+async def serve_frontend():
+    """Serve the single-page frontend."""
+    html = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(html)
+
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest_endpoint(request: Request, file: UploadFile = File(...)):

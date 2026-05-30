@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAGged</title>
+<style>
+:root {
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface2: #27272a;
+  --border: #3f3f46;
+  --text: #fafafa;
+  --muted: #71717a;
+  --muted2: #a1a1aa;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --green: #4ade80;
+  --red: #f87171;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+header {
+  height: 52px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+header h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+header span { color: var(--muted); font-size: 13px; }
+
+/* ── Layout ──────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  overflow: hidden;
+}
+
+/* ── Ingest sidebar ──────────────────────────────────────────── */
+aside {
+  border-right: 1px solid var(--border);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+aside h2 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+#dropzone {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 28px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--muted2);
+  line-height: 1.6;
+  user-select: none;
+}
+#dropzone:hover, #dropzone.over {
+  border-color: var(--accent);
+  background: rgba(129,140,248,0.04);
+  color: var(--text);
+}
+#dropzone .dz-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+#dropzone .dz-main { font-size: 13px; }
+#dropzone .dz-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+#ingest-status {
+  font-size: 12px;
+  line-height: 1.6;
+  display: none;
+  padding: 8px 10px;
+  border-radius: 7px;
+}
+#ingest-status.loading { color: var(--muted2); background: var(--surface); }
+#ingest-status.success { color: var(--green); background: rgba(74,222,128,0.08); }
+#ingest-status.error   { color: var(--red);   background: rgba(248,113,113,0.08); }
+
+#file-list { display: flex; flex-direction: column; gap: 7px; }
+.file-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+}
+.file-pill .fp-name {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.file-pill .fp-meta { font-size: 11px; color: var(--muted); }
+
+/* ── Query panel ─────────────────────────────────────────────── */
+section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  scroll-behavior: smooth;
+}
+#output::-webkit-scrollbar { width: 5px; }
+#output::-webkit-scrollbar-track { background: transparent; }
+#output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+#empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+#empty-state .es-icon { font-size: 36px; }
+#empty-state p { font-size: 13px; max-width: 240px; line-height: 1.6; }
+
+/* ── Response block ──────────────────────────────────────────── */
+.response { display: flex; flex-direction: column; gap: 16px; max-width: 800px; }
+
+.q-bubble {
+  align-self: flex-end;
+  background: var(--surface2);
+  border-radius: 14px 14px 3px 14px;
+  padding: 10px 15px;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 75%;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 7px;
+}
+.source-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 12px;
+}
+.sc-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.sc-meta {
+  color: var(--muted2);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.rel-bar {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.rel-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.answer-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.dot-pulse { display: flex; gap: 4px; }
+.dot-pulse span {
+  width: 5px; height: 5px;
+  background: var(--muted);
+  border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+.dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,80%,100% { opacity: 0.2; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background: var(--accent);
+  margin-left: 1px;
+  vertical-align: middle;
+  border-radius: 1px;
+  animation: blink 0.9s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Input area ──────────────────────────────────────────────── */
+#input-area {
+  border-top: 1px solid var(--border);
+  padding: 14px 32px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#question-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  line-height: 1.55;
+  min-height: 46px;
+  max-height: 160px;
+  transition: border-color 0.15s;
+  overflow-y: auto;
+}
+#question-input:focus { border-color: var(--accent); }
+#question-input::placeholder { color: var(--muted); }
+
+#input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topk-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted2);
+  white-space: nowrap;
+}
+#top-k {
+  width: 50px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 8px;
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s;
+}
+#top-k:focus { border-color: var(--accent); }
+.kbd-hint {
+  flex: 1;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+}
+.kbd-hint kbd {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 10px;
+}
+#ask-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+#ask-btn:hover:not(:disabled) { background: var(--accent-hover); }
+#ask-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RAGged</h1>
+  <span>document Q&amp;A</span>
+</header>
+
+<main>
+  <aside>
+    <h2>Documents</h2>
+
+    <div id="dropzone">
+      <span class="dz-icon">📄</span>
+      <div class="dz-main">Drop a PDF here</div>
+      <div class="dz-sub">or click to browse</div>
+    </div>
+    <input type="file" id="file-input" accept=".pdf" hidden>
+
+    <div id="ingest-status"></div>
+    <div id="file-list"></div>
+  </aside>
+
+  <section>
+    <div id="output">
+      <div id="empty-state">
+        <div class="es-icon">💬</div>
+        <p>Ingest a PDF on the left, then ask a question.</p>
+      </div>
+    </div>
+
+    <div id="input-area">
+      <textarea id="question-input" placeholder="Ask a question about your document…" rows="2"></textarea>
+      <div id="input-row">
+        <label class="topk-label">
+          Sources
+          <input type="number" id="top-k" value="5" min="1" max="20">
+        </label>
+        <span class="kbd-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to send</span>
+        <button id="ask-btn">Ask →</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ── Ingest ────────────────────────────────────────────────────────────────────
+
+const dropzone     = document.getElementById('dropzone');
+const fileInput    = document.getElementById('file-input');
+const ingestStatus = document.getElementById('ingest-status');
+const fileList     = document.getElementById('file-list');
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) ingestFile(f);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) ingestFile(fileInput.files[0]);
+  fileInput.value = '';
+});
+
+async function ingestFile(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    setStatus('Only PDF files are supported.', 'error');
+    return;
+  }
+  setStatus(`Ingesting "${file.name}"…`, 'loading');
+
+  const form = new FormData();
+  form.append('file', file);
+
+  try {
+    const res  = await fetch('/ingest', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) { setStatus(data.detail || 'Ingest failed.', 'error'); return; }
+    setStatus(`✓ Ingested ${data.chunks_ingested} chunks`, 'success');
+    prependFilePill(data.filename, data.chunks_ingested);
+  } catch {
+    setStatus('Network error — is the server running?', 'error');
+  }
+}
+
+function setStatus(msg, type) {
+  ingestStatus.textContent = msg;
+  ingestStatus.className = type;
+  ingestStatus.style.display = 'block';
+}
+
+function prependFilePill(name, chunks) {
+  const pill = document.createElement('div');
+  pill.className = 'file-pill';
+  pill.innerHTML = `<div class="fp-name" title="${name}">${name}</div><div class="fp-meta">${chunks} chunks</div>`;
+  fileList.prepend(pill);
+}
+
+// ── Query ─────────────────────────────────────────────────────────────────────
+
+const output        = document.getElementById('output');
+const questionInput = document.getElementById('question-input');
+const topKInput     = document.getElementById('top-k');
+const askBtn        = document.getElementById('ask-btn');
+
+// auto-grow textarea
+questionInput.addEventListener('input', () => {
+  questionInput.style.height = 'auto';
+  questionInput.style.height = Math.min(questionInput.scrollHeight, 160) + 'px';
+});
+
+questionInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitQuery(); }
+});
+askBtn.addEventListener('click', submitQuery);
+
+async function submitQuery() {
+  const question = questionInput.value.trim();
+  if (!question || askBtn.disabled) return;
+
+  const top_k = parseInt(topKInput.value) || 5;
+
+  // remove empty state once
+  const es = document.getElementById('empty-state');
+  if (es) es.remove();
+
+  setQueryLocked(true);
+  questionInput.value = '';
+  questionInput.style.height = 'auto';
+
+  // ── build DOM for this response ──────────────────────────────
+  const block = make('div', 'response');
+
+  const qBubble = make('div', 'q-bubble');
+  qBubble.textContent = question;
+
+  // thinking indicator (shown until first SSE event)
+  const thinkingDiv = make('div', 'thinking');
+  thinkingDiv.innerHTML = `<div class="dot-pulse"><span></span><span></span><span></span></div><span>Retrieving…</span>`;
+
+  const sourcesWrap = make('div');
+  const sourcesLbl  = make('div', 'section-label');
+  sourcesLbl.textContent = 'Sources';
+  sourcesLbl.style.display = 'none';
+  const sourcesGrid = make('div', 'sources-grid');
+  sourcesWrap.append(sourcesLbl, sourcesGrid);
+
+  const answerWrap = make('div');
+  const answerLbl  = make('div', 'section-label');
+  answerLbl.textContent = 'Answer';
+  answerLbl.style.display = 'none';
+  const answerText = make('div', 'answer-text');
+  const cursor     = make('span', 'cursor');
+  answerWrap.append(answerLbl, answerText);
+
+  block.append(qBubble, thinkingDiv, sourcesWrap, answerWrap);
+  output.appendChild(block);
+  scrollBottom();
+
+  // ── stream ───────────────────────────────────────────────────
+  try {
+    const res = await fetch('/query/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, top_k }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      thinkingDiv.remove();
+      answerLbl.style.display = 'block';
+      answerText.textContent = `Error: ${err.detail || res.statusText}`;
+      return;
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop(); // hold incomplete tail
+
+      for (const part of parts) {
+        if (!part.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(part.slice(6)); } catch { continue; }
+
+        if (evt.type === 'sources') {
+          thinkingDiv.remove();
+          sourcesLbl.style.display = 'block';
+          answerLbl.style.display  = 'block';
+          answerText.appendChild(cursor);
+
+          evt.sources.forEach(s => {
+            const pct  = Math.round(s.relevance * 100);
+            const card = make('div', 'source-card');
+            card.innerHTML = `
+              <div class="sc-name" title="${s.source}">${s.source}</div>
+              <div class="sc-meta"><span>p.${s.page}</span><span>${pct}%</span></div>
+              <div class="rel-bar"><div class="rel-fill" style="width:0%"></div></div>`;
+            sourcesGrid.appendChild(card);
+            // animate bar on next frame
+            requestAnimationFrame(() => {
+              card.querySelector('.rel-fill').style.width = pct + '%';
+            });
+          });
+          scrollBottom();
+
+        } else if (evt.type === 'delta') {
+          answerText.insertBefore(document.createTextNode(evt.text), cursor);
+          scrollBottom();
+
+        } else if (evt.type === 'done') {
+          cursor.remove();
+        }
+      }
+    }
+
+  } catch {
+    thinkingDiv.remove();
+    answerLbl.style.display = 'block';
+    answerText.textContent  = 'Network error — is the server running?';
+    cursor.remove();
+  } finally {
+    setQueryLocked(false);
+    questionInput.focus();
+  }
+}
+
+function setQueryLocked(locked) {
+  askBtn.disabled          = locked;
+  questionInput.disabled   = locked;
+}
+
+function scrollBottom() {
+  output.scrollTop = output.scrollHeight;
+}
+
+function make(tag, cls) {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  return el;
+}
+</script>
+
+</body>
+</html>
