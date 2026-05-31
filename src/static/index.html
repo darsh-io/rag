@@ -4,363 +4,626 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAGged</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+/* ── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg: #09090b;
-  --surface: #18181b;
-  --surface2: #27272a;
-  --border: #3f3f46;
-  --text: #fafafa;
-  --muted: #71717a;
-  --muted2: #a1a1aa;
-  --accent: #818cf8;
-  --accent-hover: #6366f1;
-  --green: #4ade80;
-  --red: #f87171;
+  --bg:           #050507;
+  --bg-grid:      rgba(255,255,255,0.018);
+  --s0:           rgba(255,255,255,0.025);
+  --s1:           rgba(255,255,255,0.04);
+  --s2:           rgba(255,255,255,0.06);
+  --border:       rgba(255,255,255,0.07);
+  --border-s:     rgba(255,255,255,0.12);
+  --text:         #eeeef2;
+  --text-2:       #8888a4;
+  --text-3:       #44445a;
+  --accent:       #6366f1;
+  --accent-2:     #8b5cf6;
+  --accent-rgb:   99,102,241;
+  --green:        #34d399;
+  --red:          #f87171;
+  --r:            10px;
+  --r-sm:         7px;
+  --r-lg:         16px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 
+/* ── Base ────────────────────────────────────────────────────────────────── */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   display: flex;
   flex-direction: column;
   font-size: 14px;
-}
-
-/* ── Header ─────────────────────────────────────────────────── */
-header {
-  height: 52px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-header h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
-header span { color: var(--muted); font-size: 13px; }
-
-/* ── Layout ──────────────────────────────────────────────────── */
-main {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 264px 1fr;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
 
-/* ── Ingest sidebar ──────────────────────────────────────────── */
+/* Ambient background: subtle grid + center glow */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 60% 40%, rgba(99,102,241,0.04) 0%, transparent 70%),
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 100% 100%, 36px 36px, 36px 36px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header {
+  position: relative;
+  z-index: 10;
+  height: 54px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,5,7,0.85);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border-s);
+}
+
+.logo-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-3);
+  letter-spacing: 0.01em;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
 aside {
   border-right: 1px solid var(--border);
-  padding: 18px 16px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   overflow-y: auto;
+  scrollbar-width: none;
 }
-aside h2 {
-  font-size: 11px;
+aside::-webkit-scrollbar { display: none; }
+
+.sidebar-label {
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
+  color: var(--text-3);
+  padding: 0 2px;
 }
 
+/* Dropzone */
 #dropzone {
-  border: 1.5px dashed var(--border);
-  border-radius: 10px;
-  padding: 28px 12px;
+  position: relative;
+  border: 1.5px dashed var(--border-s);
+  border-radius: var(--r);
+  padding: 26px 14px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  color: var(--muted2);
-  line-height: 1.6;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   user-select: none;
+  overflow: hidden;
+}
+#dropzone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb),0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
 }
 #dropzone:hover, #dropzone.over {
-  border-color: var(--accent);
-  background: rgba(129,140,248,0.04);
-  color: var(--text);
+  border-color: rgba(var(--accent-rgb),0.5);
+  background: rgba(var(--accent-rgb),0.04);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.08), inset 0 1px 0 rgba(255,255,255,0.04);
 }
-#dropzone .dz-icon { font-size: 26px; margin-bottom: 8px; display: block; }
-#dropzone .dz-main { font-size: 13px; }
-#dropzone .dz-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+#dropzone:hover::after, #dropzone.over::after { opacity: 1; }
 
+.dz-icon {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 10px;
+  filter: grayscale(0.3);
+}
+.dz-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin-bottom: 3px;
+  transition: color 0.2s;
+}
+#dropzone:hover .dz-title { color: var(--text); }
+.dz-hint {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* Status bar */
 #ingest-status {
-  font-size: 12px;
-  line-height: 1.6;
   display: none;
-  padding: 8px 10px;
-  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
 }
-#ingest-status.loading { color: var(--muted2); background: var(--surface); }
-#ingest-status.success { color: var(--green); background: rgba(74,222,128,0.08); }
-#ingest-status.error   { color: var(--red);   background: rgba(248,113,113,0.08); }
+#ingest-status.loading {
+  color: var(--text-2);
+  background: var(--s0);
+  border-color: var(--border);
+}
+#ingest-status.success {
+  color: var(--green);
+  background: rgba(52,211,153,0.06);
+  border-color: rgba(52,211,153,0.15);
+}
+#ingest-status.error {
+  color: var(--red);
+  background: rgba(248,113,113,0.06);
+  border-color: rgba(248,113,113,0.15);
+}
 
-#file-list { display: flex; flex-direction: column; gap: 7px; }
+/* File pills */
+#file-list { display: flex; flex-direction: column; gap: 6px; }
 .file-pill {
-  background: var(--surface);
+  position: relative;
+  background: var(--s0);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  padding: 9px 11px 9px 14px;
+  overflow: hidden;
+  transition: background 0.15s, border-color 0.15s;
 }
-.file-pill .fp-name {
+.file-pill::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 3px 0 0 3px;
+}
+.fp-name {
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 2px;
+  color: var(--text);
 }
-.file-pill .fp-meta { font-size: 11px; color: var(--muted); }
+.fp-meta {
+  font-size: 11px;
+  color: var(--text-3);
+}
 
-/* ── Query panel ─────────────────────────────────────────────── */
+/* ── Query panel ─────────────────────────────────────────────────────────── */
 section {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
+/* Output */
 #output {
   flex: 1;
   overflow-y: auto;
-  padding: 28px 32px;
+  padding: 32px 40px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 40px;
   scroll-behavior: smooth;
 }
-#output::-webkit-scrollbar { width: 5px; }
+#output::-webkit-scrollbar { width: 4px; }
 #output::-webkit-scrollbar-track { background: transparent; }
-#output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+#output::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+}
+#output::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.14);
+}
 
+/* Empty state */
 #empty-state {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: var(--muted);
+  gap: 16px;
   text-align: center;
+  padding-bottom: 60px;
 }
-#empty-state .es-icon { font-size: 36px; }
-#empty-state p { font-size: 13px; max-width: 240px; line-height: 1.6; }
+.es-glyph {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--s1);
+  border: 1px solid var(--border-s);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 4px;
+  box-shadow: 0 0 40px rgba(var(--accent-rgb),0.08);
+}
+.es-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: -0.01em;
+}
+.es-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  max-width: 220px;
+  line-height: 1.6;
+}
 
-/* ── Response block ──────────────────────────────────────────── */
-.response { display: flex; flex-direction: column; gap: 16px; max-width: 800px; }
+/* ── Response block ──────────────────────────────────────────────────────── */
+.response {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 780px;
+  animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
+/* Question bubble */
 .q-bubble {
   align-self: flex-end;
-  background: var(--surface2);
-  border-radius: 14px 14px 3px 14px;
-  padding: 10px 15px;
+  max-width: 72%;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.18), rgba(139,92,246,0.18));
+  border: 1px solid rgba(var(--accent-rgb),0.2);
+  border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+  padding: 11px 16px;
   font-size: 14px;
-  line-height: 1.55;
-  max-width: 75%;
+  line-height: 1.6;
+  color: var(--text);
 }
 
-.section-label {
+/* Pipeline status */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.pip-step {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+}
+.pip-step.done { color: var(--green); }
+.pip-step.active { color: var(--text-2); }
+.pip-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.pip-step.active .pip-dot {
+  animation: pipPulse 1s ease-in-out infinite;
+}
+@keyframes pipPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.pip-arrow { color: var(--text-3); opacity: 0.4; }
+
+/* Section label */
+.blk-label {
   font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 600;
   letter-spacing: 0.12em;
-  color: var(--muted);
-  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 9px;
 }
 
-.sources-grid {
+/* HyDE card */
+.hyde-card {
+  background: rgba(139,92,246,0.05);
+  border: 1px solid rgba(139,92,246,0.15);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-2);
+  line-height: 1.7;
+  position: relative;
+  overflow: hidden;
+}
+.hyde-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+}
+
+/* Source grid */
+.source-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 8px;
 }
 .source-card {
-  background: var(--surface);
+  background: var(--s0);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 11px;
-  font-size: 12px;
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.source-card:hover {
+  background: var(--s1);
+  border-color: var(--border-s);
+}
+.sc-rank {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  margin-bottom: 5px;
 }
 .sc-name {
+  font-size: 12px;
   font-weight: 500;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 4px;
 }
 .sc-meta {
-  color: var(--muted2);
   display: flex;
   justify-content: space-between;
   font-size: 11px;
+  color: var(--text-3);
+  margin-bottom: 7px;
 }
-.rel-bar {
+.rel-track {
   height: 2px;
-  background: var(--border);
+  background: rgba(255,255,255,0.06);
   border-radius: 2px;
-  margin-top: 6px;
   overflow: hidden;
 }
 .rel-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   border-radius: 2px;
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  width: 0%;
+  transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
 }
 
-.hyde-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 13px;
-  font-size: 12px;
-  color: var(--muted2);
-  line-height: 1.6;
-  font-style: italic;
-}
-
+/* Answer */
 .answer-text {
   font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.85;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
+  letter-spacing: 0.01em;
 }
-
-.thinking {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.dot-pulse { display: flex; gap: 4px; }
-.dot-pulse span {
-  width: 5px; height: 5px;
-  background: var(--muted);
-  border-radius: 50%;
-  animation: pulse 1.2s ease-in-out infinite;
-}
-.dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
-.dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes pulse { 0%,80%,100% { opacity: 0.2; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
-
 .cursor {
   display: inline-block;
   width: 2px;
   height: 15px;
-  background: var(--accent);
-  margin-left: 1px;
-  vertical-align: middle;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
   border-radius: 1px;
-  animation: blink 0.9s step-end infinite;
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: blink 0.85s step-end infinite;
 }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ── Input area ──────────────────────────────────────────────── */
-#input-area {
-  border-top: 1px solid var(--border);
-  padding: 14px 32px 18px;
+/* Thinking shimmer */
+.thinking-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+}
+.shimmer-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Input area ──────────────────────────────────────────────────────────── */
+#input-area {
+  position: relative;
+  border-top: 1px solid var(--border);
+  background: rgba(5,5,7,0.7);
+  backdrop-filter: blur(12px);
+  padding: 16px 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
   flex-shrink: 0;
 }
 
-#question-input {
-  width: 100%;
-  background: var(--surface);
+.input-shell {
+  position: relative;
+  border-radius: var(--r);
+  background: var(--s1);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 11px 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-shell:focus-within {
+  border-color: rgba(var(--accent-rgb),0.5);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.1);
+}
+
+#question-input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 12px 14px;
   color: var(--text);
   font-family: inherit;
   font-size: 14px;
   resize: none;
-  outline: none;
-  line-height: 1.55;
-  min-height: 46px;
+  line-height: 1.6;
+  min-height: 48px;
   max-height: 160px;
-  transition: border-color 0.15s;
   overflow-y: auto;
 }
-#question-input:focus { border-color: var(--accent); }
-#question-input::placeholder { color: var(--muted); }
+#question-input::placeholder { color: var(--text-3); }
 
 #input-row {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.topk-label {
+
+.topk-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 12px;
-  color: var(--muted2);
+  color: var(--text-3);
   white-space: nowrap;
 }
 #top-k {
-  width: 50px;
-  background: var(--surface);
+  width: 48px;
+  background: var(--s1);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   padding: 5px 8px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
+  font-family: inherit;
   text-align: center;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-#top-k:focus { border-color: var(--accent); }
+#top-k:focus {
+  border-color: rgba(var(--accent-rgb),0.5);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.1);
+}
+
 .kbd-hint {
   flex: 1;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--text-3);
   text-align: right;
 }
 .kbd-hint kbd {
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  background: var(--s2);
+  border: 1px solid var(--border-s);
   border-radius: 4px;
   padding: 1px 5px;
   font-family: inherit;
   font-size: 10px;
+  color: var(--text-2);
 }
+
 #ask-btn {
-  background: var(--accent);
+  position: relative;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  border-radius: var(--r-sm);
+  padding: 8px 20px;
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  letter-spacing: -0.01em;
+  transition: opacity 0.15s, box-shadow 0.15s, transform 0.1s;
   white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(var(--accent-rgb),0.3);
 }
-#ask-btn:hover:not(:disabled) { background: var(--accent-hover); }
-#ask-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+#ask-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.45);
+  transform: translateY(-1px);
+}
+#ask-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 6px rgba(var(--accent-rgb),0.3);
+}
+#ask-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
 </style>
 </head>
 <body>
 
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
 <header>
-  <h1>RAGged</h1>
-  <span>document Q&amp;A</span>
+  <span class="logo">RAGged</span>
+  <div class="logo-sep"></div>
+  <span class="logo-sub">retrieval-augmented generation</span>
 </header>
 
 <main>
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
   <aside>
-    <h2>Documents</h2>
+    <p class="sidebar-label">Documents</p>
 
     <div id="dropzone">
       <span class="dz-icon">📄</span>
-      <div class="dz-main">Drop a PDF here</div>
-      <div class="dz-sub">or click to browse</div>
+      <p class="dz-title">Drop PDF here</p>
+      <p class="dz-hint">or click to browse</p>
     </div>
     <input type="file" id="file-input" accept=".pdf" hidden>
 
@@ -368,47 +631,48 @@ section {
     <div id="file-list"></div>
   </aside>
 
+  <!-- ── Query panel ─────────────────────────────────────────────────── -->
   <section>
     <div id="output">
       <div id="empty-state">
-        <div class="es-icon">💬</div>
-        <p>Ingest a PDF on the left, then ask a question.</p>
+        <div class="es-glyph">💬</div>
+        <p class="es-title">Ask anything</p>
+        <p class="es-sub">Upload a PDF on the left, then ask a question about it.</p>
       </div>
     </div>
 
     <div id="input-area">
-      <textarea id="question-input" placeholder="Ask a question about your document…" rows="2"></textarea>
+      <div class="input-shell">
+        <textarea id="question-input" placeholder="Ask a question about your document…" rows="2"></textarea>
+      </div>
       <div id="input-row">
-        <label class="topk-label">
+        <label class="topk-wrap">
           Sources
           <input type="number" id="top-k" value="5" min="1" max="20">
         </label>
-        <span class="kbd-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to send</span>
+        <span class="kbd-hint"><kbd>Ctrl</kbd> <kbd>Enter</kbd></span>
         <button id="ask-btn">Ask →</button>
       </div>
     </div>
   </section>
+
 </main>
 
 <script>
-// ── Ingest ────────────────────────────────────────────────────────────────────
-
+/* ── Ingest ─────────────────────────────────────────────────────────────── */
 const dropzone     = document.getElementById('dropzone');
 const fileInput    = document.getElementById('file-input');
 const ingestStatus = document.getElementById('ingest-status');
 const fileList     = document.getElementById('file-list');
 
 dropzone.addEventListener('click', () => fileInput.click());
-
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('over'); });
 dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
 dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('over');
+  e.preventDefault(); dropzone.classList.remove('over');
   const f = e.dataTransfer.files[0];
   if (f) ingestFile(f);
 });
-
 fileInput.addEventListener('change', () => {
   if (fileInput.files[0]) ingestFile(fileInput.files[0]);
   fileInput.value = '';
@@ -416,23 +680,18 @@ fileInput.addEventListener('change', () => {
 
 async function ingestFile(file) {
   if (!file.name.toLowerCase().endsWith('.pdf')) {
-    setStatus('Only PDF files are supported.', 'error');
-    return;
+    setStatus('Only PDF files are supported.', 'error'); return;
   }
   setStatus(`Ingesting "${file.name}"…`, 'loading');
-
   const form = new FormData();
   form.append('file', file);
-
   try {
     const res  = await fetch('/ingest', { method: 'POST', body: form });
     const data = await res.json();
     if (!res.ok) { setStatus(data.detail || 'Ingest failed.', 'error'); return; }
-    setStatus(`✓ Ingested ${data.chunks_ingested} chunks`, 'success');
-    prependFilePill(data.filename, data.chunks_ingested);
-  } catch {
-    setStatus('Network error — is the server running?', 'error');
-  }
+    setStatus(`✓ ${data.chunks_ingested} chunks indexed`, 'success');
+    addFilePill(data.filename, data.chunks_ingested);
+  } catch { setStatus('Network error — is the server running?', 'error'); }
 }
 
 function setStatus(msg, type) {
@@ -441,82 +700,123 @@ function setStatus(msg, type) {
   ingestStatus.style.display = 'block';
 }
 
-function prependFilePill(name, chunks) {
-  const pill = document.createElement('div');
-  pill.className = 'file-pill';
-  pill.innerHTML = `<div class="fp-name" title="${name}">${name}</div><div class="fp-meta">${chunks} chunks</div>`;
-  fileList.prepend(pill);
+function addFilePill(name, chunks) {
+  const el = document.createElement('div');
+  el.className = 'file-pill';
+  el.innerHTML = `<div class="fp-name" title="${name}">${name}</div><div class="fp-meta">${chunks} chunks</div>`;
+  fileList.prepend(el);
 }
 
-// ── Query ─────────────────────────────────────────────────────────────────────
-
+/* ── Query ──────────────────────────────────────────────────────────────── */
 const output        = document.getElementById('output');
 const questionInput = document.getElementById('question-input');
 const topKInput     = document.getElementById('top-k');
 const askBtn        = document.getElementById('ask-btn');
 
-// auto-grow textarea
 questionInput.addEventListener('input', () => {
   questionInput.style.height = 'auto';
   questionInput.style.height = Math.min(questionInput.scrollHeight, 160) + 'px';
 });
-
 questionInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitQuery(); }
 });
 askBtn.addEventListener('click', submitQuery);
 
+/* Pipeline steps */
+const STEPS = ['hypothesis', 'sources', 'answering'];
+const STEP_LABELS = { hypothesis: 'Hypothesis', sources: 'Sources', answering: 'Answer' };
+
+function makePipeline() {
+  const wrap = document.createElement('div');
+  wrap.className = 'pipeline';
+  const els = {};
+  STEPS.forEach((s, i) => {
+    const step = document.createElement('span');
+    step.className = 'pip-step';
+    step.innerHTML = `<span class="pip-dot"></span>${STEP_LABELS[s]}`;
+    wrap.appendChild(step);
+    els[s] = step;
+    if (i < STEPS.length - 1) {
+      const arr = document.createElement('span');
+      arr.className = 'pip-arrow';
+      arr.textContent = '→';
+      wrap.appendChild(arr);
+    }
+  });
+  return { wrap, els };
+}
+
+function setPipelineActive(els, step) {
+  STEPS.forEach(s => els[s].className = 'pip-step');
+  const idx = STEPS.indexOf(step);
+  STEPS.forEach((s, i) => {
+    if (i < idx) els[s].className = 'pip-step done';
+  });
+  if (els[step]) els[step].className = 'pip-step active';
+}
+
+function setPipelineDone(els) {
+  STEPS.forEach(s => els[s].className = 'pip-step done');
+}
+
 async function submitQuery() {
   const question = questionInput.value.trim();
   if (!question || askBtn.disabled) return;
-
   const top_k = parseInt(topKInput.value) || 5;
 
-  // remove empty state once
   const es = document.getElementById('empty-state');
   if (es) es.remove();
 
-  setQueryLocked(true);
+  setLocked(true);
   questionInput.value = '';
   questionInput.style.height = 'auto';
 
-  // ── build DOM for this response ──────────────────────────────
-  const block = make('div', 'response');
+  /* ── Build DOM ──────────────────────────────────────────── */
+  const block = el('div', 'response');
 
-  const qBubble = make('div', 'q-bubble');
+  // Question
+  const qBubble = el('div', 'q-bubble');
   qBubble.textContent = question;
 
-  // thinking indicator (shown until first SSE event)
-  const thinkingDiv = make('div', 'thinking');
-  thinkingDiv.innerHTML = `<div class="dot-pulse"><span></span><span></span><span></span></div><span>Retrieving…</span>`;
+  // Pipeline indicator
+  const { wrap: pipWrap, els: pipEls } = makePipeline();
+  setPipelineActive(pipEls, 'hypothesis');
 
-  const hydeWrap  = make('div');
-  const hydeLbl   = make('div', 'section-label');
-  hydeLbl.textContent = 'Hypothetical document (HyDE)';
+  // HyDE
+  const hydeWrap = el('div');
+  const hydeLbl  = lbl('Hypothetical document');
   hydeLbl.style.display = 'none';
-  const hydeBody  = make('div', 'hyde-block');
-  hydeWrap.append(hydeLbl, hydeBody);
+  const hydeCard = el('div', 'hyde-card');
+  hydeWrap.append(hydeLbl, hydeCard);
 
-  const sourcesWrap = make('div');
-  const sourcesLbl  = make('div', 'section-label');
-  sourcesLbl.textContent = 'Sources';
-  sourcesLbl.style.display = 'none';
-  const sourcesGrid = make('div', 'sources-grid');
-  sourcesWrap.append(sourcesLbl, sourcesGrid);
+  // Sources
+  const srcWrap  = el('div');
+  const srcLbl   = lbl('Sources');
+  srcLbl.style.display = 'none';
+  const srcGrid  = el('div', 'source-grid');
+  srcWrap.append(srcLbl, srcGrid);
 
-  const answerWrap = make('div');
-  const answerLbl  = make('div', 'section-label');
-  answerLbl.textContent = 'Answer';
-  answerLbl.style.display = 'none';
-  const answerText = make('div', 'answer-text');
-  const cursor     = make('span', 'cursor');
-  answerWrap.append(answerLbl, answerText);
+  // Thinking shimmer (shown until sources arrive)
+  const thinkWrap = el('div', 'thinking-wrap');
+  [80, 65, 45].forEach(w => {
+    const line = el('div', 'shimmer-line');
+    line.style.width = w + '%';
+    thinkWrap.appendChild(line);
+  });
 
-  block.append(qBubble, thinkingDiv, hydeWrap, sourcesWrap, answerWrap);
+  // Answer
+  const ansWrap = el('div');
+  const ansLbl  = lbl('Answer');
+  ansLbl.style.display = 'none';
+  const ansText = el('div', 'answer-text');
+  const cursor  = el('span', 'cursor');
+  ansWrap.append(ansLbl, ansText);
+
+  block.append(qBubble, pipWrap, hydeWrap, srcWrap, thinkWrap, ansWrap);
   output.appendChild(block);
-  scrollBottom();
+  scrollEnd();
 
-  // ── stream ───────────────────────────────────────────────────
+  /* ── Stream ─────────────────────────────────────────────── */
   try {
     const res = await fetch('/query/stream', {
       method: 'POST',
@@ -526,9 +826,10 @@ async function submitQuery() {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      thinkingDiv.remove();
-      answerLbl.style.display = 'block';
-      answerText.textContent = `Error: ${err.detail || res.statusText}`;
+      thinkWrap.remove();
+      ansLbl.style.display = 'block';
+      ansText.textContent = `Error: ${err.detail || res.statusText}`;
+      setPipelineDone(pipEls);
       return;
     }
 
@@ -542,7 +843,7 @@ async function submitQuery() {
 
       buf += decoder.decode(value, { stream: true });
       const parts = buf.split('\n\n');
-      buf = parts.pop(); // hold incomplete tail
+      buf = parts.pop();
 
       for (const part of parts) {
         if (!part.startsWith('data: ')) continue;
@@ -551,65 +852,73 @@ async function submitQuery() {
 
         if (evt.type === 'hyde') {
           hydeLbl.style.display = 'block';
-          hydeBody.textContent = evt.text;
+          hydeCard.textContent = evt.text;
+          setPipelineActive(pipEls, 'sources');
+          scrollEnd();
 
         } else if (evt.type === 'sources') {
-          thinkingDiv.remove();
-          sourcesLbl.style.display = 'block';
-          answerLbl.style.display  = 'block';
-          answerText.appendChild(cursor);
+          thinkWrap.remove();
+          srcLbl.style.display = 'block';
+          ansLbl.style.display = 'block';
+          ansText.appendChild(cursor);
+          setPipelineActive(pipEls, 'answering');
 
-          evt.sources.forEach(s => {
+          evt.sources.forEach((s, i) => {
             const pct  = Math.round(s.relevance * 100);
-            const card = make('div', 'source-card');
+            const card = el('div', 'source-card');
             card.innerHTML = `
+              <div class="sc-rank">Source ${i + 1}</div>
               <div class="sc-name" title="${s.source}">${s.source}</div>
-              <div class="sc-meta"><span>p.${s.page}</span><span>${pct}%</span></div>
-              <div class="rel-bar"><div class="rel-fill" style="width:0%"></div></div>`;
-            sourcesGrid.appendChild(card);
-            // animate bar on next frame
+              <div class="sc-meta"><span>Page ${s.page}</span><span>${pct}%</span></div>
+              <div class="rel-track"><div class="rel-fill"></div></div>`;
+            srcGrid.appendChild(card);
             requestAnimationFrame(() => {
               card.querySelector('.rel-fill').style.width = pct + '%';
             });
           });
-          scrollBottom();
+          scrollEnd();
 
         } else if (evt.type === 'delta') {
-          answerText.insertBefore(document.createTextNode(evt.text), cursor);
-          scrollBottom();
+          ansText.insertBefore(document.createTextNode(evt.text), cursor);
+          scrollEnd();
 
         } else if (evt.type === 'done') {
           cursor.remove();
+          setPipelineDone(pipEls);
         }
       }
     }
-
   } catch {
-    thinkingDiv.remove();
-    answerLbl.style.display = 'block';
-    answerText.textContent  = 'Network error — is the server running?';
+    thinkWrap.remove();
+    ansLbl.style.display = 'block';
+    ansText.textContent = 'Network error — is the server running?';
     cursor.remove();
   } finally {
-    setQueryLocked(false);
+    setLocked(false);
     questionInput.focus();
   }
 }
 
-function setQueryLocked(locked) {
-  askBtn.disabled          = locked;
-  questionInput.disabled   = locked;
+function setLocked(v) {
+  askBtn.disabled = v;
+  questionInput.disabled = v;
 }
 
-function scrollBottom() {
+function scrollEnd() {
   output.scrollTop = output.scrollHeight;
 }
 
-function make(tag, cls) {
-  const el = document.createElement(tag);
-  if (cls) el.className = cls;
-  return el;
+function el(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+
+function lbl(text) {
+  const e = el('p', 'blk-label');
+  e.textContent = text;
+  return e;
 }
 </script>
-
 </body>
 </html>
