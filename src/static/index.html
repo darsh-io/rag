@@ -211,6 +211,17 @@ section {
   transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 
+.hyde-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 12px;
+  color: var(--muted2);
+  line-height: 1.6;
+  font-style: italic;
+}
+
 .answer-text {
   font-size: 14px;
   line-height: 1.8;
@@ -479,6 +490,13 @@ async function submitQuery() {
   const thinkingDiv = make('div', 'thinking');
   thinkingDiv.innerHTML = `<div class="dot-pulse"><span></span><span></span><span></span></div><span>Retrieving…</span>`;
 
+  const hydeWrap  = make('div');
+  const hydeLbl   = make('div', 'section-label');
+  hydeLbl.textContent = 'Hypothetical document (HyDE)';
+  hydeLbl.style.display = 'none';
+  const hydeBody  = make('div', 'hyde-block');
+  hydeWrap.append(hydeLbl, hydeBody);
+
   const sourcesWrap = make('div');
   const sourcesLbl  = make('div', 'section-label');
   sourcesLbl.textContent = 'Sources';
@@ -494,7 +512,7 @@ async function submitQuery() {
   const cursor     = make('span', 'cursor');
   answerWrap.append(answerLbl, answerText);
 
-  block.append(qBubble, thinkingDiv, sourcesWrap, answerWrap);
+  block.append(qBubble, thinkingDiv, hydeWrap, sourcesWrap, answerWrap);
   output.appendChild(block);
   scrollBottom();
 
@@ -531,7 +549,11 @@ async function submitQuery() {
         let evt;
         try { evt = JSON.parse(part.slice(6)); } catch { continue; }
 
-        if (evt.type === 'sources') {
+        if (evt.type === 'hyde') {
+          hydeLbl.style.display = 'block';
+          hydeBody.textContent = evt.text;
+
+        } else if (evt.type === 'sources') {
           thinkingDiv.remove();
           sourcesLbl.style.display = 'block';
           answerLbl.style.display  = 'block';

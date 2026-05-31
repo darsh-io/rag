@@ -143,10 +143,11 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
     cfg = request.app.state.cfg
 
     # retrieval is synchronous — run it in a thread so we don't block the event loop
-    chunks, messages = await asyncio.to_thread(
+    chunks, messages, hyde_doc = await asyncio.to_thread(
         build_rag_context,
         body.question, [], request.app.state.collection,
         cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
+        cfg["chat_url"], cfg["llm_model"],
         cfg["cohere_api_key"], cfg["reranker_model"],
         body.top_k,
     )
@@ -157,7 +158,9 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
     ]
 
     async def event_stream():
-        # first event: all sources so the client can render citations immediately
+        # emit the hypothetical doc so the client can show what HyDE generated
+        yield f"data: {json.dumps({'type': 'hyde', 'text': hyde_doc})}\n\n"
+        # second event: all sources so the client can render citations immediately
         yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
 
         # stream LLM deltas from a background thread via a queue

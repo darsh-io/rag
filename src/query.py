@@ -16,11 +16,28 @@ Rules:
 - Be concise — no filler or padding.
 - You may use prior conversation turns to resolve follow-up questions, but still ground all answers in the retrieved context."""
 
+# HyDE prompt asks for a short passage, not a full answer — embedding quality degrades with length
+HYDE_PROMPT = """\
+Write a short technical passage (2-3 sentences) that directly answers the question below.
+Write as if the passage appears in a research paper or textbook. No preamble, just the content."""
 
-def build_rag_context(question, history, collection, api_key, embed_url, embed_model, cohere_api_key, reranker_model, top_k=5):
-    """Run retrieval, fusion, and reranking; return (chunks, messages) ready for the LLM."""
-    # Dense retrieval (top 10)
-    dense_results = chroma_query(question, collection, api_key, embed_url, embed_model, n_results=10)
+
+def generate_hypothetical_doc(question, api_key, chat_url, llm_model):
+    """Generate a hypothetical document that would answer the question, used to improve retrieval."""
+    messages = [
+        {"role": "system", "content": HYDE_PROMPT},
+        {"role": "user", "content": question},
+    ]
+    return call_llm(messages, api_key, chat_url, llm_model)
+
+
+def build_rag_context(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
+    """Run HyDE retrieval, fusion, and reranking; return (chunks, messages, hyde_doc) ready for the LLM."""
+    # HyDE: embed a hypothetical answer rather than the raw question for denser semantic match
+    hyde_doc = generate_hypothetical_doc(question, api_key, chat_url, llm_model)
+
+    # Dense retrieval using the hypothetical doc embedding (top 10)
+    dense_results = chroma_query(hyde_doc, collection, api_key, embed_url, embed_model, n_results=10)
     dense_ranked = [
         {"id": id_, "doc": doc, "meta": meta, "rank": rank}
         for rank, (id_, doc, meta) in enumerate(zip(
@@ -30,7 +47,7 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
         ), start=1)
     ]
 
-    # Sparse BM25 retrieval (top 10) — fetches entire corpus each call; acceptable at demo scale
+    # Sparse BM25 uses the original question — keyword matching works better on the real query
     all_data = collection.get()
     sparse_ranked = bm25_search(question, all_data["ids"], all_data["documents"], all_data["metadatas"], top_n=10)
 
@@ -50,7 +67,7 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
         + [{"role": "user", "content": f"Context:\n{context_block}\n\nQuestion: {question}"}]
     )
 
-    return chunks, messages
+    return chunks, messages, hyde_doc
 
 
 def call_llm(messages, api_key, chat_url, llm_model):
@@ -94,10 +111,11 @@ def call_llm_stream(messages, api_key, chat_url, llm_model):
 
 
 def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
-    """Run the full RAG pipeline — retrieve, fuse, rerank, then answer with conversation history."""
-    chunks, messages = build_rag_context(
+    """Run the full RAG pipeline with HyDE — retrieve, fuse, rerank, then answer with conversation history."""
+    chunks, messages, hyde_doc = build_rag_context(
         question, history, collection,
         api_key, embed_url, embed_model,
+        chat_url, llm_model,
         cohere_api_key, reranker_model, top_k,
     )
     answer = call_llm(messages, api_key, chat_url, llm_model)
@@ -106,6 +124,7 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
     print(f"\n{sep}")
     print(f"  QUESTION: {question}")
     print(sep)
+    print(f"\n  HYPOTHETICAL DOC (HyDE)\n  {hyde_doc.strip()}\n")
     print(f"\n  RETRIEVED CHUNKS (reranked, top {top_k})\n")
     for i, doc, meta, score in chunks:
         preview = doc[:200].replace("\n", " ")
