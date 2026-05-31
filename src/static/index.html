@@ -1151,7 +1151,8 @@ function setLocked(v) {
   questionInput.disabled = v;
   if (v) {
     askLabel.textContent = 'Working';
-    askIcon.outerHTML = `<div class="spinner" id="ask-icon"></div>`;
+    const icon = document.getElementById('ask-icon');
+    if (icon) icon.outerHTML = `<div class="spinner" id="ask-icon"></div>`;
   } else {
     const spinner = document.getElementById('ask-icon');
     if (spinner) {
