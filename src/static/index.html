@@ -130,7 +130,6 @@ header {
 
 /* doc count badge */
 #doc-count {
-  margin-left: auto;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-tertiary);
@@ -960,14 +959,16 @@ section {
   </div>
   <div class="header-divider"></div>
   <span class="header-tag">Retrieval-Augmented Generation</span>
-  <span id="doc-count"></span>
-  <span id="conn-dot" class="conn-dot checking" title="Connecting…" style="margin-left:auto"></span>
-  <button class="settings-btn" id="settings-btn" title="API key settings" aria-label="Settings">
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+    <span id="doc-count"></span>
+    <span id="conn-dot" class="conn-dot checking" title="Connecting…"></span>
+    <button class="settings-btn" id="settings-btn" title="API key settings" aria-label="Settings">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
     </svg>
   </button>
+  </div>
 </header>
 
 <main>
@@ -1118,7 +1119,8 @@ section {
 </div>
 
 <script>
-/* ── API key storage ──────────────────────────────────────────────────────── */
+'use strict';
+/* ── Keys ────────────────────────────────────────────────────────────────── */
 const LS_OR = 'rag_or_key';
 const LS_CO = 'rag_co_key';
 
@@ -1319,7 +1321,6 @@ const output        = document.getElementById('output');
 const questionInput = document.getElementById('question-input');
 const askBtn        = document.getElementById('ask-btn');
 const askLabel      = document.getElementById('ask-label');
-const askIcon       = document.getElementById('ask-icon');
 
 questionInput.addEventListener('input', () => {
   questionInput.style.height = 'auto';
@@ -1370,6 +1371,9 @@ function setPipelineDone(els, wrap) {
 async function submitQuery() {
   const question = questionInput.value.trim();
   if (!question || askBtn.disabled) return;
+
+  // guard before touching any UI
+  if (!hasKeys()) { showSetupModal(); return; }
 
   const es = document.getElementById('empty-state');
   if (es) es.remove();
@@ -1424,8 +1428,6 @@ async function submitQuery() {
   scrollEnd();
 
   /* ── Stream ── */
-  if (!hasKeys()) { setLocked(false); showSetupModal(); return; }
-
   try {
     const res = await fetch('/query/stream', {
       method: 'POST',
@@ -1505,10 +1507,14 @@ async function submitQuery() {
       }
     }
   } catch {
+    // thinkWrap.remove() is safe even if already removed
     thinkWrap.remove();
-    ansSection.style.display = 'block';
-    ansText.textContent = 'Network error — is the server running?';
     cursor.remove();
+    ansSection.style.display = 'block';
+    // append error without wiping any text already streamed
+    const errNode = document.createTextNode(ansText.textContent ? '\n\n⚠ Connection lost.' : 'Network error — is the server running?');
+    ansText.appendChild(errNode);
+    setPipelineDone(pipEls, pipWrap);
   } finally {
     setLocked(false);
     questionInput.focus();
