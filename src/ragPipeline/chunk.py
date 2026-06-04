@@ -78,6 +78,36 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_html(file_path):
+    """Strip HTML tags and extract visible text using the built-in html.parser."""
+    from html.parser import HTMLParser
+
+    class _Extractor(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self._buf = []
+            self._skip = False
+
+        def handle_starttag(self, tag, attrs):
+            if tag in ("script", "style", "head"):
+                self._skip = True
+
+        def handle_endtag(self, tag):
+            if tag in ("script", "style", "head"):
+                self._skip = False
+
+        def handle_data(self, data):
+            if not self._skip:
+                stripped = data.strip()
+                if stripped:
+                    self._buf.append(stripped)
+
+    content = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    parser = _Extractor()
+    parser.feed(content)
+    return [(1, " ".join(parser._buf))]
+
+
 def _extract_csv(file_path):
     """Parse a CSV into readable 'key: value' rows so embeddings capture column context."""
     import csv
@@ -115,6 +145,8 @@ _EXTRACTORS = {
     ".json": _extract_structured_text,
     ".xml":  _extract_structured_text,
     ".csv":  _extract_csv,
+    ".html": _extract_html,
+    ".htm":  _extract_html,
 }
 
 # Exported so other modules can validate without importing private internals
