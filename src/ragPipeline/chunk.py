@@ -78,6 +78,12 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_structured_text(file_path):
+    """Read structured text formats (JSON, YAML, TOML, XML) as a single page of raw text."""
+    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    return [(1, text)]
+
+
 _EXTRACTORS = {
     ".pdf":  _extract_pdf,
     ".txt":  _extract_plain_text,
@@ -87,6 +93,11 @@ _EXTRACTORS = {
     ".ini":  _extract_plain_text,
     ".cfg":  _extract_plain_text,
     ".conf": _extract_plain_text,
+    ".toml": _extract_structured_text,
+    ".yaml": _extract_structured_text,
+    ".yml":  _extract_structured_text,
+    ".json": _extract_structured_text,
+    ".xml":  _extract_structured_text,
 }
 
 # Exported so other modules can validate without importing private internals
