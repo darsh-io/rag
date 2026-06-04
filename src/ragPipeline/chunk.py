@@ -78,6 +78,26 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_odf(file_path):
+    """Extract paragraph text from OpenDocument files (.odt, .ods, .odp)."""
+    from odf import text as odf_text, teletype
+    from odf.opendocument import load as odf_load
+
+    doc = odf_load(str(file_path))
+    paras = [
+        teletype.extractText(p).strip()
+        for p in doc.getElementsByType(odf_text.P)
+    ]
+    paras = [p for p in paras if p]
+    # group into page-sized blocks of 20 paragraphs
+    pages = []
+    for page_num, start in enumerate(range(0, max(len(paras), 1), 20), start=1):
+        text = "\n".join(paras[start:start + 20])
+        if text:
+            pages.append((page_num, text))
+    return pages or [(1, "")]
+
+
 def _extract_epub(file_path):
     """Extract text chapter-by-chapter from an EPUB ebook."""
     import ebooklib
@@ -262,6 +282,9 @@ _EXTRACTORS = {
     ".pptx": _extract_pptx,
     ".ppt":  _extract_ppt,
     ".epub": _extract_epub,
+    ".odt":  _extract_odf,
+    ".ods":  _extract_odf,
+    ".odp":  _extract_odf,
 }
 
 # Exported so other modules can validate without importing private internals

@@ -11,3 +11,4 @@ openpyxl
 xlrd
 python-pptx
 ebooklib
+odfpy
