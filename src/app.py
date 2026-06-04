@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
 from query import build_rag_context, call_llm_stream, rag_query
+from ragPipeline.chunk import SUPPORTED_EXTENSIONS
 from ragPipeline.vectorstore import get_collection, ingest
 
 
@@ -127,8 +128,10 @@ async def ingest_endpoint(request: Request, file: UploadFile = File(...)):
     cfg = _resolve_cfg(request)
     _require_keys(cfg)
 
-    if not (file.filename or "").lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in SUPPORTED_EXTENSIONS:
+        supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+        raise HTTPException(status_code=400, detail=f"Unsupported file type '{ext}'. Supported: {supported}")
 
     # write upload to a temp file so the ingest pipeline can read it by path
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:

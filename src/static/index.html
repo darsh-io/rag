@@ -991,7 +991,7 @@ section {
         <p class="dz-title">Drop PDF to ingest</p>
         <p class="dz-sub">or click to browse files</p>
       </div>
-      <input type="file" id="file-input" accept=".pdf" hidden>
+      <input type="file" id="file-input" accept=".pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf" hidden>
 
       <div id="ingest-status"></div>
       <div id="file-list"></div>
@@ -1264,9 +1264,6 @@ fileInput.addEventListener('change', () => {
 });
 
 async function ingestFile(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    setStatus('Only PDF files are supported.', 'error'); return;
-  }
   if (!hasKeys()) { showSetupModal(); return; }
   setStatus(`Ingesting "${truncate(file.name, 28)}"…`, 'loading');
   const form = new FormData();

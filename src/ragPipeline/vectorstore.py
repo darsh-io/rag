@@ -1,5 +1,5 @@
 import chromadb
-from ragPipeline.chunk import chunk_pdf
+from ragPipeline.chunk import chunk_file
 from ragPipeline.embeddings import getEmbeddings
 
 
@@ -12,7 +12,7 @@ def get_collection(db_path="chroma_db", collection_name="documents"):
 
 def ingest(file_path, collection, api_key, api_url, model):
     """Chunk a PDF, embed each chunk, and upsert everything into the Chroma collection."""
-    chunks = chunk_pdf(file_path)
+    chunks = chunk_file(file_path)
 
     # stable id per chunk so re-ingesting the same file overwrites rather than duplicates
     ids = [f"{chunk['source']}_chunk{chunk['chunk_index']}" for chunk in chunks]

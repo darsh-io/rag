@@ -2,22 +2,19 @@ import pypdf
 from pathlib import Path
 import re
 
-def chunk_pdf(file_path, chunk_size=1000, overlap=200):
-    """Split a PDF into overlapping sentence-aware chunks with source and page metadata."""
-    pdf = pypdf.PdfReader(file_path)
 
-    pages = []
-    for page_num, page in enumerate(pdf.pages):
-        pages.append((page_num + 1, page.extract_text() or ""))
-
-    # flatten all pages into one string while recording which page each character belongs to
+def _chunk_from_pages(pages, source_name, chunk_size=1000, overlap=200):
+    """Core chunking: flatten (page_num, text) pairs then split into overlapping sentence chunks."""
     full_text = ""
     char_to_page = []
     for page_num, text in pages:
         full_text += text
         char_to_page.extend([page_num] * len(text))
 
-    # lookbehind on .!? keeps the punctuation attached to the sentence that ends with it
+    if not full_text.strip():
+        return []
+
+    # lookbehind on .!? keeps punctuation attached to the sentence that ends with it
     sentences = re.split(r'(?<=[.!?])\s+', full_text)
 
     # record the start character of each sentence so we can map it back to a page number
@@ -51,9 +48,9 @@ def chunk_pdf(file_path, chunk_size=1000, overlap=200):
 
         chunks.append({
             "text": chunk_text,
-            "source": Path(file_path).name,
+            "source": source_name,
             "page": page,
-            "chunk_index": len(chunks)
+            "chunk_index": len(chunks),
         })
 
         # find overlap: step back from j until we've covered ~overlap chars
@@ -66,8 +63,55 @@ def chunk_pdf(file_path, chunk_size=1000, overlap=200):
 
     return chunks
 
+
+# ── Extractors ────────────────────────────────────────────────────────────────
+
+def _extract_pdf(file_path):
+    """Extract text page-by-page from a PDF."""
+    pdf = pypdf.PdfReader(file_path)
+    return [(n + 1, page.extract_text() or "") for n, page in enumerate(pdf.pages)]
+
+
+def _extract_plain_text(file_path):
+    """Read a plain text file as a single page."""
+    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    return [(1, text)]
+
+
+_EXTRACTORS = {
+    ".pdf":  _extract_pdf,
+    ".txt":  _extract_plain_text,
+    ".md":   _extract_plain_text,
+    ".log":  _extract_plain_text,
+    ".rst":  _extract_plain_text,
+    ".ini":  _extract_plain_text,
+    ".cfg":  _extract_plain_text,
+    ".conf": _extract_plain_text,
+}
+
+# Exported so other modules can validate without importing private internals
+SUPPORTED_EXTENSIONS = frozenset(_EXTRACTORS)
+
+
+def chunk_file(file_path, chunk_size=1000, overlap=200):
+    """Chunk any supported file into overlapping sentence-aware chunks with source and page metadata."""
+    ext = Path(file_path).suffix.lower()
+    if ext not in _EXTRACTORS:
+        raise ValueError(
+            f"Unsupported file type '{ext}'. Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}"
+        )
+    pages = _EXTRACTORS[ext](file_path)
+    return _chunk_from_pages(pages, Path(file_path).name, chunk_size, overlap)
+
+
+# kept for backward compatibility
+def chunk_pdf(file_path, chunk_size=1000, overlap=200):
+    """Split a PDF into overlapping sentence-aware chunks with source and page metadata."""
+    return chunk_file(file_path, chunk_size, overlap)
+
+
 if __name__ == "__main__":
     file_path = Path(__file__).parent.parent.parent / "resources" / "Attention-Is-All-You-Need.pdf"
-    chunks = chunk_pdf(file_path)
+    chunks = chunk_file(file_path)
     for idx, chunk in enumerate(chunks):
         print(f"Chunk {idx+1}:\n{chunk}\n")
