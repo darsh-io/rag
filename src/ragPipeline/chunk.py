@@ -78,6 +78,42 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_epub(file_path):
+    """Extract text chapter-by-chapter from an EPUB ebook."""
+    import ebooklib
+    from ebooklib import epub
+    from html.parser import HTMLParser
+
+    class _Strip(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self._buf = []
+            self._skip = False
+
+        def handle_starttag(self, tag, attrs):
+            if tag in ("script", "style"):
+                self._skip = True
+
+        def handle_endtag(self, tag):
+            if tag in ("script", "style"):
+                self._skip = False
+
+        def handle_data(self, data):
+            if not self._skip and data.strip():
+                self._buf.append(data.strip())
+
+    book = epub.read_epub(str(file_path))
+    pages = []
+    for chapter_num, item in enumerate(book.get_items_of_type(ebooklib.ITEM_DOCUMENT), start=1):
+        content = item.get_content().decode("utf-8", errors="replace")
+        parser = _Strip()
+        parser.feed(content)
+        text = " ".join(parser._buf)
+        if text.strip():
+            pages.append((chapter_num, text))
+    return pages or [(1, "")]
+
+
 def _extract_pptx(file_path):
     """Extract text slide-by-slide from a PowerPoint presentation (.pptx)."""
     from pptx import Presentation
@@ -225,6 +261,7 @@ _EXTRACTORS = {
     ".xls":  _extract_xls,
     ".pptx": _extract_pptx,
     ".ppt":  _extract_ppt,
+    ".epub": _extract_epub,
 }
 
 # Exported so other modules can validate without importing private internals

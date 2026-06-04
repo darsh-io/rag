@@ -10,3 +10,4 @@ python-docx
 openpyxl
 xlrd
 python-pptx
+ebooklib
