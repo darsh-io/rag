@@ -78,6 +78,20 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_docx(file_path):
+    """Extract paragraph text from a Word document (.docx), grouped into sections."""
+    import docx
+    doc = docx.Document(file_path)
+    # Group every 20 paragraphs as one "page" so long documents stay navigable
+    paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    pages = []
+    for page_num, start in enumerate(range(0, max(len(paras), 1), 20), start=1):
+        text = "\n".join(paras[start:start + 20])
+        if text:
+            pages.append((page_num, text))
+    return pages or [(1, "")]
+
+
 def _extract_html(file_path):
     """Strip HTML tags and extract visible text using the built-in html.parser."""
     from html.parser import HTMLParser
@@ -147,6 +161,7 @@ _EXTRACTORS = {
     ".csv":  _extract_csv,
     ".html": _extract_html,
     ".htm":  _extract_html,
+    ".docx": _extract_docx,
 }
 
 # Exported so other modules can validate without importing private internals
