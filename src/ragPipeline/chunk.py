@@ -78,6 +78,22 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_csv(file_path):
+    """Parse a CSV into readable 'key: value' rows so embeddings capture column context."""
+    import csv
+    rows = []
+    with open(file_path, newline="", encoding="utf-8", errors="replace") as f:
+        reader = csv.reader(f)
+        headers = None
+        for row in reader:
+            if headers is None:
+                headers = row
+                rows.append(", ".join(row))
+            else:
+                rows.append(", ".join(f"{h}: {v}" for h, v in zip(headers, row)))
+    return [(1, "\n".join(rows))]
+
+
 def _extract_structured_text(file_path):
     """Read structured text formats (JSON, YAML, TOML, XML) as a single page of raw text."""
     text = Path(file_path).read_text(encoding="utf-8", errors="replace")
@@ -98,6 +114,7 @@ _EXTRACTORS = {
     ".yml":  _extract_structured_text,
     ".json": _extract_structured_text,
     ".xml":  _extract_structured_text,
+    ".csv":  _extract_csv,
 }
 
 # Exported so other modules can validate without importing private internals
