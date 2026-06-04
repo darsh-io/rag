@@ -9,3 +9,4 @@ python-multipart
 python-docx
 openpyxl
 xlrd
+python-pptx

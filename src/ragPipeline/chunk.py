@@ -78,6 +78,31 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_pptx(file_path):
+    """Extract text slide-by-slide from a PowerPoint presentation (.pptx)."""
+    from pptx import Presentation
+    prs = Presentation(file_path)
+    pages = []
+    for slide_num, slide in enumerate(prs.slides, start=1):
+        texts = [
+            para.text.strip()
+            for shape in slide.shapes
+            if shape.has_text_frame
+            for para in shape.text_frame.paragraphs
+            if para.text.strip()
+        ]
+        if texts:
+            pages.append((slide_num, "\n".join(texts)))
+    return pages or [(1, "")]
+
+
+def _extract_ppt(file_path):
+    raise ValueError(
+        "Legacy .ppt binary format is not supported. "
+        "Open the file in PowerPoint and save it as .pptx first."
+    )
+
+
 def _extract_xlsx(file_path):
     """Extract each sheet from an .xlsx workbook as a separate page."""
     import openpyxl
@@ -198,6 +223,8 @@ _EXTRACTORS = {
     ".docx": _extract_docx,
     ".xlsx": _extract_xlsx,
     ".xls":  _extract_xls,
+    ".pptx": _extract_pptx,
+    ".ppt":  _extract_ppt,
 }
 
 # Exported so other modules can validate without importing private internals
