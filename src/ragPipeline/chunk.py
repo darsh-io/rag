@@ -78,6 +78,40 @@ def _extract_plain_text(file_path):
     return [(1, text)]
 
 
+def _extract_xlsx(file_path):
+    """Extract each sheet from an .xlsx workbook as a separate page."""
+    import openpyxl
+    wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+    pages = []
+    for page_num, sheet_name in enumerate(wb.sheetnames, start=1):
+        ws = wb[sheet_name]
+        rows = [
+            "\t".join("" if c is None else str(c) for c in row)
+            for row in ws.iter_rows(values_only=True)
+        ]
+        text = "\n".join(r for r in rows if r.strip())
+        if text:
+            pages.append((page_num, text))
+    wb.close()
+    return pages or [(1, "")]
+
+
+def _extract_xls(file_path):
+    """Extract each sheet from a legacy .xls workbook as a separate page."""
+    import xlrd
+    wb = xlrd.open_workbook(file_path)
+    pages = []
+    for page_num, sheet in enumerate(wb.sheets(), start=1):
+        rows = [
+            "\t".join(str(c) for c in sheet.row_values(r))
+            for r in range(sheet.nrows)
+        ]
+        text = "\n".join(r for r in rows if r.strip())
+        if text:
+            pages.append((page_num, text))
+    return pages or [(1, "")]
+
+
 def _extract_docx(file_path):
     """Extract paragraph text from a Word document (.docx), grouped into sections."""
     import docx
@@ -162,6 +196,8 @@ _EXTRACTORS = {
     ".html": _extract_html,
     ".htm":  _extract_html,
     ".docx": _extract_docx,
+    ".xlsx": _extract_xlsx,
+    ".xls":  _extract_xls,
 }
 
 # Exported so other modules can validate without importing private internals
