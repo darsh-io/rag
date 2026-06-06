@@ -11,8 +11,14 @@ def get_collection(db_path="chroma_db", collection_name="documents"):
 
 
 def ingest(file_path, collection, api_key, api_url, model):
-    """Chunk a PDF, embed each chunk, and upsert everything into the Chroma collection."""
+    """Chunk a file, embed each chunk, and upsert everything into the Chroma collection."""
     chunks = chunk_file(file_path)
+
+    if not chunks:
+        raise ValueError(
+            "No text could be extracted from this file. "
+            "If it's a scanned PDF or image-based document, it must be OCR'd first."
+        )
 
     # stable id per chunk so re-ingesting the same file overwrites rather than duplicates
     ids = [f"{chunk['source']}_chunk{chunk['chunk_index']}" for chunk in chunks]
