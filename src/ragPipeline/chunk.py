@@ -352,7 +352,7 @@ _EXTRACTORS = {
 SUPPORTED_EXTENSIONS = frozenset(_EXTRACTORS)
 
 
-def chunk_file(file_path, chunk_size=1000, overlap=200, vision_cfg=None):
+def chunk_file(file_path, chunk_size=1000, overlap=200, vision_cfg=None, source_name=None):
     """Chunk any supported file into overlapping sentence-aware chunks with source and page metadata."""
     ext = Path(file_path).suffix.lower()
     if ext not in _EXTRACTORS:
@@ -363,7 +363,8 @@ def chunk_file(file_path, chunk_size=1000, overlap=200, vision_cfg=None):
         pages = _EXTRACTORS[ext](file_path, vision_cfg)
     else:
         pages = _EXTRACTORS[ext](file_path)
-    return _chunk_from_pages(pages, Path(file_path).name, chunk_size, overlap)
+    name = source_name or Path(file_path).name
+    return _chunk_from_pages(pages, name, chunk_size, overlap)
 
 
 # kept for backward compatibility

@@ -150,6 +150,7 @@ async def ingest_endpoint(request: Request, file: UploadFile = File(...)):
             tmp_path, request.app.state.collection,
             cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
             vision_cfg=vision_cfg,
+            source_name=file.filename,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -10,9 +10,9 @@ def get_collection(db_path="chroma_db", collection_name="documents"):
     return client.get_or_create_collection(name=collection_name, metadata={"hnsw:space": "cosine"})
 
 
-def ingest(file_path, collection, api_key, api_url, model, vision_cfg=None):
+def ingest(file_path, collection, api_key, api_url, model, vision_cfg=None, source_name=None):
     """Chunk a file, embed each chunk, and upsert everything into the Chroma collection."""
-    chunks = chunk_file(file_path, vision_cfg=vision_cfg)
+    chunks = chunk_file(file_path, vision_cfg=vision_cfg, source_name=source_name)
 
     if not chunks:
         raise ValueError(
