@@ -8,4 +8,4 @@ reranker-model:
   name: "rerank-v3.5"
 
 vision-model:
-  name: "google/gemini-2.0-flash-001"
+  name: "nex-agi/nex-n2-pro:free"
