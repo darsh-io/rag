@@ -1,6 +1,8 @@
 import pypdf
 from pathlib import Path
 import re
+import requests
+import json
 
 
 def _chunk_from_pages(pages, source_name, chunk_size=1000, overlap=200):
@@ -259,6 +261,57 @@ def _extract_structured_text(file_path):
     return [(1, text)]
 
 
+def _extract_image(file_path, vision_cfg=None):
+    """Send the image to a vision LLM and return its text extraction + visual description."""
+    import base64
+    import io
+    from PIL import Image
+
+    if not vision_cfg:
+        raise ValueError(
+            "Image files require vision API credentials. "
+            "Pass vision_cfg={'api_key': ..., 'chat_url': ..., 'vision_model': ...} to chunk_file()."
+        )
+
+    with Image.open(file_path) as img:
+        if img.mode not in ("RGB", "RGBA"):
+            img = img.convert("RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+    messages = [{
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": (
+                    "Extract all text visible in this image verbatim. "
+                    "Then describe any diagrams, charts, tables, figures, or visual elements in detail. "
+                    "Be thorough — this output will be used for document search and retrieval."
+                ),
+            },
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/png;base64,{img_b64}"},
+            },
+        ],
+    }]
+
+    rq = requests.post(
+        url=vision_cfg["chat_url"],
+        headers={"Authorization": f"Bearer {vision_cfg['api_key']}"},
+        data=json.dumps({"model": vision_cfg["vision_model"], "messages": messages}),
+    )
+    body = rq.json()
+    if "choices" not in body:
+        raise RuntimeError(f"Vision API error: {body}")
+    description = body["choices"][0]["message"]["content"] or ""
+    return [(1, description)]
+
+
+_IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp", ".tiff", ".tif", ".bmp"})
+
 _EXTRACTORS = {
     ".pdf":  _extract_pdf,
     ".txt":  _extract_plain_text,
@@ -285,20 +338,31 @@ _EXTRACTORS = {
     ".odt":  _extract_odf,
     ".ods":  _extract_odf,
     ".odp":  _extract_odf,
+    ".jpg":  _extract_image,
+    ".jpeg": _extract_image,
+    ".png":  _extract_image,
+    ".gif":  _extract_image,
+    ".webp": _extract_image,
+    ".tiff": _extract_image,
+    ".tif":  _extract_image,
+    ".bmp":  _extract_image,
 }
 
 # Exported so other modules can validate without importing private internals
 SUPPORTED_EXTENSIONS = frozenset(_EXTRACTORS)
 
 
-def chunk_file(file_path, chunk_size=1000, overlap=200):
+def chunk_file(file_path, chunk_size=1000, overlap=200, vision_cfg=None):
     """Chunk any supported file into overlapping sentence-aware chunks with source and page metadata."""
     ext = Path(file_path).suffix.lower()
     if ext not in _EXTRACTORS:
         raise ValueError(
             f"Unsupported file type '{ext}'. Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}"
         )
-    pages = _EXTRACTORS[ext](file_path)
+    if ext in _IMAGE_EXTENSIONS:
+        pages = _EXTRACTORS[ext](file_path, vision_cfg)
+    else:
+        pages = _EXTRACTORS[ext](file_path)
     return _chunk_from_pages(pages, Path(file_path).name, chunk_size, overlap)
 
 
