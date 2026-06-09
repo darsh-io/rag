@@ -57,6 +57,7 @@ def _load_cfg():
         "embed_model": config["embeddings-model"]["name"],
         "llm_model": config["llm-model"]["name"],
         "reranker_model": config["reranker-model"]["name"],
+        "vision_model": config["vision-model"]["name"],
         "embed_url": "https://openrouter.ai/api/v1/embeddings",
         "chat_url": "https://openrouter.ai/api/v1/chat/completions",
     }
@@ -133,15 +134,22 @@ async def ingest_endpoint(request: Request, file: UploadFile = File(...)):
         supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
         raise HTTPException(status_code=400, detail=f"Unsupported file type '{ext}'. Supported: {supported}")
 
-    # write upload to a temp file so the ingest pipeline can read it by path
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+    # write upload to a temp file preserving the extension so the extractor can dispatch correctly
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
+
+    vision_cfg = {
+        "api_key": cfg["api_key"],
+        "chat_url": cfg["chat_url"],
+        "vision_model": cfg["vision_model"],
+    }
 
     try:
         chunks_ingested = ingest(
             tmp_path, request.app.state.collection,
             cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
+            vision_cfg=vision_cfg,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
