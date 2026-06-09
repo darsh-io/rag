@@ -15,5 +15,8 @@ def getEmbeddings(api_key, api_url, model, text):
             "input": text,
         }),
     )
+    body = rq.json()
+    if "data" not in body:
+        raise RuntimeError(f"Embeddings API error: {body}")
     # response is a list; we always embed one string so index 0 is the only entry
-    return rq.json()["data"][0]["embedding"]
+    return body["data"][0]["embedding"]
