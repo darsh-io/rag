@@ -20,6 +20,11 @@ def ingest(file_path, collection, api_key, api_url, model, vision_cfg=None):
             "If it's a scanned PDF or image-based document, it must be OCR'd first."
         )
 
+    # drop chunks whose text is empty or whitespace — the embeddings API rejects them
+    chunks = [c for c in chunks if c["text"].strip()]
+    if not chunks:
+        raise ValueError("File produced only empty chunks after extraction.")
+
     # stable id per chunk so re-ingesting the same file overwrites rather than duplicates
     ids = [f"{chunk['source']}_chunk{chunk['chunk_index']}" for chunk in chunks]
     texts = [chunk["text"] for chunk in chunks]
