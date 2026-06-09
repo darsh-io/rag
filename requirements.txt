@@ -12,3 +12,4 @@ xlrd
 python-pptx
 ebooklib
 odfpy
+Pillow
