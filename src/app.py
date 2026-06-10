@@ -92,8 +92,7 @@ def _require_keys(cfg: dict):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.cfg = _load_cfg()
-    db_path = str(Path(__file__).parent.parent / "chroma_db")
-    app.state.collection = get_collection(db_path=db_path)
+    app.state.collection = get_collection()
     yield
 
 
