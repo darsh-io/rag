@@ -221,6 +221,15 @@ body::before {
 .fp-name { font-size: 11px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fp-meta { font-size: 10px; color: var(--text-muted); }
 .fp-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; box-shadow: 0 0 5px rgba(52,211,153,0.5); }
+.fp-del  {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.file-pill:hover .fp-del { opacity: 1; }
+.fp-del:hover { background: var(--red-bg); color: var(--red); }
+.fp-del svg { width: 11px; height: 11px; }
 
 /* Sidebar footer */
 .sb-footer {
@@ -991,8 +1000,28 @@ function addFilePill(name, chunks, animate) {
       <div class="fp-name" title="${esc(name)}">${esc(name)}</div>
       <div class="fp-meta">${chunks} chunks</div>
     </div>
-    <div class="fp-dot"></div>`;
+    <div class="fp-dot"></div>
+    <button class="fp-del" title="Remove document" aria-label="Remove">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>`;
+  el.querySelector('.fp-del').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await deleteDocument(name, el);
+  });
   fileListEl.prepend(el);
+}
+
+async function deleteDocument(name, pillEl) {
+  try {
+    await fetch(`/documents/${encodeURIComponent(name)}`, { method: 'DELETE', headers: getHeaders() });
+  } catch { /* server may be down; still remove locally */ }
+  pillEl.remove();
+  fileRecords = fileRecords.filter(f => f.name !== name);
+  storeFiles(fileRecords);
+  fileCount = fileRecords.length;
+  updateDocBadge();
 }
 
 function updateDocBadge() {

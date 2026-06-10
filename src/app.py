@@ -159,6 +159,17 @@ async def ingest_endpoint(request: Request, file: UploadFile = File(...)):
     return IngestResponse(filename=file.filename, chunks_ingested=chunks_ingested)
 
 
+@app.delete("/documents/{source_name:path}")
+async def delete_document(source_name: str, request: Request):
+    """Delete all chunks belonging to a source document from the collection."""
+    collection = request.app.state.collection
+    try:
+        collection.delete(where={"source": {"$eq": source_name}})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"deleted": source_name}
+
+
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(request: Request, body: QueryRequest):
     """Run the RAG pipeline for a question and return the full answer with cited sources."""
