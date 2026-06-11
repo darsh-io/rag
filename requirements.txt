@@ -14,4 +14,4 @@ ebooklib
 odfpy
 Pillow
 PyJWT
-passlib[bcrypt]
+bcrypt

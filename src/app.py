@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import bcrypt
 import jwt
 import yaml
 from dotenv import load_dotenv
@@ -14,7 +15,6 @@ from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from query import build_rag_context, call_llm_stream, rag_query
@@ -24,12 +24,11 @@ from ragPipeline.vectorstore import get_collection, ingest
 
 # --- Auth --------------------------------------------------------------------
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-_JWT_SECRET   = secrets.token_hex(32)   # fresh per process; tokens invalidate on restart
-_JWT_ALG      = "HS256"
-_JWT_DAYS     = 7
-_pw_hash: str | None = None             # set at startup if APP_PASSWORD is configured
-_bearer       = HTTPBearer(auto_error=False)
+_JWT_SECRET  = secrets.token_hex(32)   # fresh per process; tokens invalidate on restart
+_JWT_ALG     = "HS256"
+_JWT_DAYS    = 7
+_pw_hash: bytes | None = None          # set at startup if APP_PASSWORD is configured
+_bearer      = HTTPBearer(auto_error=False)
 
 
 def _auth_enabled() -> bool:
@@ -142,7 +141,7 @@ async def lifespan(app: FastAPI):
     load_dotenv()
     raw_pw = os.getenv("APP_PASSWORD", "").strip()
     if raw_pw:
-        _pw_hash = _pwd_context.hash(raw_pw)
+        _pw_hash = bcrypt.hashpw(raw_pw.encode(), bcrypt.gensalt())
         print("Auth enabled — APP_PASSWORD is set.")
     else:
         print("Auth disabled — set APP_PASSWORD in .env to enable login protection.")
@@ -167,7 +166,7 @@ app.add_middleware(
 @app.post("/auth/login")
 async def login(body: LoginRequest):
     """Verify password and return a signed JWT. If auth is disabled, always succeeds."""
-    if _auth_enabled() and not _pwd_context.verify(body.password, _pw_hash):
+    if _auth_enabled() and not bcrypt.checkpw(body.password.encode(), _pw_hash):
         raise HTTPException(status_code=401, detail="Incorrect password.")
     return {"token": _make_token(), "auth_enabled": _auth_enabled()}
 
