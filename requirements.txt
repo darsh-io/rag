@@ -13,3 +13,5 @@ python-pptx
 ebooklib
 odfpy
 Pillow
+PyJWT
+passlib[bcrypt]

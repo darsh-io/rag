@@ -679,6 +679,27 @@ body::before {
   </div>
 </div>
 
+<!-- Login modal -->
+<div id="login-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:360px">
+    <div class="modal-head">
+      <div class="modal-icon-box">🔒</div>
+      <div>
+        <p class="modal-title">Sign in to RAGged</p>
+        <p class="modal-sub">Enter the password set in your <code style="font-size:11px;color:var(--accent-light)">.env</code> file to continue.</p>
+      </div>
+    </div>
+    <div class="key-group">
+      <div class="key-input-row">
+        <input type="password" id="login-pw-input" placeholder="Password" autocomplete="current-password" spellcheck="false">
+        <button class="reveal-btn" data-for="login-pw-input" type="button">👁</button>
+      </div>
+    </div>
+    <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+    <button class="save-btn" id="login-submit-btn">Sign in</button>
+  </div>
+</div>
+
 <!-- API key modal -->
 <div id="setup-modal" class="modal-overlay">
   <div class="modal-card">
@@ -723,6 +744,12 @@ body::before {
 <script>
 'use strict';
 
+/* ── Auth token ── */
+const LS_TOKEN = 'rag_auth_token';
+function getToken()     { return localStorage.getItem(LS_TOKEN) || ''; }
+function storeToken(t)  { localStorage.setItem(LS_TOKEN, t); }
+function clearToken()   { localStorage.removeItem(LS_TOKEN); }
+
 /* ── Keys ── */
 const LS_OR = 'rag_or_key', LS_CO = 'rag_co_key';
 function loadKeys() { return { or: localStorage.getItem(LS_OR)||'', co: localStorage.getItem(LS_CO)||'' }; }
@@ -732,6 +759,8 @@ function getHeaders(extra={}) {
   const {or,co}=loadKeys(), h={...extra};
   if (or) h['X-OpenRouter-Key']=or;
   if (co) h['X-Cohere-Key']=co;
+  const tok=getToken();
+  if (tok) h['Authorization']='Bearer '+tok;
   return h;
 }
 
@@ -901,18 +930,69 @@ function showOffline() { offlineScreen.classList.add('open'); setConnState('offl
 function hideOffline() { offlineScreen.classList.remove('open'); }
 document.getElementById('retry-btn').addEventListener('click', async () => { hideOffline(); await init(); });
 
+/* ── Login modal ── */
+const loginModal = document.getElementById('login-modal');
+function showLoginModal() {
+  document.getElementById('login-pw-input').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  loginModal.classList.add('open');
+  setTimeout(() => document.getElementById('login-pw-input').focus(), 80);
+}
+function hideLoginModal() { loginModal.classList.remove('open'); }
+
+document.getElementById('login-submit-btn').addEventListener('click', doLogin);
+document.getElementById('login-pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogin() {
+  const pw  = document.getElementById('login-pw-input').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  try {
+    const r = await fetch('/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({password: pw}),
+    });
+    if (!r.ok) {
+      err.textContent = 'Incorrect password.';
+      err.style.display = 'block';
+      document.getElementById('login-pw-input').select();
+      return;
+    }
+    const data = await r.json();
+    storeToken(data.token);
+    hideLoginModal();
+    // proceed with normal post-auth init
+    if (!hasKeys()) showSetupModal();
+  } catch {
+    err.textContent = 'Cannot reach server — is it running?';
+    err.style.display = 'block';
+  }
+}
+
 async function init() {
   setConnState('checking');
   try {
     const r = await fetch('/health', { signal: AbortSignal.timeout(4000) });
-    if (r.ok) { setConnState('online'); if (!hasKeys()) showSetupModal(); }
-    else showOffline();
+    if (!r.ok) { showOffline(); return; }
+    setConnState('online');
+
+    // Check auth status (validates token if present)
+    const ar = await fetch('/auth/status', { headers: getHeaders() });
+    if (!ar.ok) { showLoginModal(); return; }
+
+    if (!hasKeys()) showSetupModal();
   } catch { showOffline(); }
 }
 
 async function friendlyError(res) {
   let d=''; try { d=(await res.json()).detail||''; } catch {}
-  if (res.status===401) return '🔑 API key missing or invalid — click ⚙ to update your keys.';
+  if (res.status===401) {
+    if (d==='Login required.') { setTimeout(showLoginModal, 150); return '🔒 Session expired — please log in again.'; }
+    return '🔑 API key missing or invalid — click ⚙ to update your keys.';
+  }
   if (res.status===400) return d||'Invalid request.';
   if (res.status===500) return `Server error: ${d||'something went wrong.'}`;
   return `Unexpected error (${res.status})${d?': '+d:''}.`;
