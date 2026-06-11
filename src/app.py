@@ -27,43 +27,87 @@ from ragPipeline.vectorstore import get_collection, ingest
 _JWT_SECRET  = secrets.token_hex(32)   # fresh per process; tokens invalidate on restart
 _JWT_ALG     = "HS256"
 _JWT_DAYS    = 7
-_pw_hash: bytes | None = None          # set at startup if APP_PASSWORD is configured
 _bearer      = HTTPBearer(auto_error=False)
+_USERS_PATH  = Path(__file__).parent.parent / "config" / "users.json"
+_users: dict = {}  # {username: {"pw_hash_hex": str, "role": "admin"|"user"}}
+
+
+def _load_users() -> dict:
+    if _USERS_PATH.exists():
+        try:
+            return json.loads(_USERS_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_users() -> None:
+    _USERS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _USERS_PATH.write_text(json.dumps(_users, indent=2), encoding="utf-8")
 
 
 def _auth_enabled() -> bool:
-    return _pw_hash is not None
+    return bool(_users)
 
 
-def _make_token() -> str:
+def _hash_pw(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).hex()
+
+
+def _check_pw(password: str, pw_hash_hex: str) -> bool:
+    return bcrypt.checkpw(password.encode(), bytes.fromhex(pw_hash_hex))
+
+
+def _make_token(username: str, role: str) -> str:
     exp = datetime.now(timezone.utc) + timedelta(days=_JWT_DAYS)
-    return jwt.encode({"exp": exp}, _JWT_SECRET, algorithm=_JWT_ALG)
+    return jwt.encode({"sub": username, "role": role, "exp": exp}, _JWT_SECRET, algorithm=_JWT_ALG)
 
 
-def _valid_token(token: str) -> bool:
+def _decode_token(token: str) -> dict | None:
     try:
-        jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
-        return True
+        return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
     except Exception:
-        return False
+        return None
 
 
-def _require_auth(credentials: HTTPAuthorizationCredentials = Depends(_bearer)):
-    """FastAPI dependency — raises 401 if auth is enabled and token is missing/invalid."""
+def _require_auth(credentials: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
+    """FastAPI dependency — returns JWT payload dict, raises 401 if invalid."""
     if not _auth_enabled():
-        return
-    if not credentials or not _valid_token(credentials.credentials):
+        return {"sub": "anonymous", "role": "admin"}
+    if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Login required.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    payload = _decode_token(credentials.credentials)
+    if not payload or payload.get("sub") not in _users:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Login required.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
+
+
+def _require_admin(payload: dict = Depends(_require_auth)) -> dict:
+    """FastAPI dependency — raises 403 if the caller is not an admin."""
+    if payload["role"] != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required.")
+    return payload
 
 
 # --- Pydantic models ---------------------------------------------------------
 
 class LoginRequest(BaseModel):
+    username: str
     password: str
+
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str
+    role: str = "user"
 
 
 class IngestResponse(BaseModel):
@@ -137,14 +181,21 @@ def _require_keys(cfg: dict):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _pw_hash
+    global _users
     load_dotenv()
-    raw_pw = os.getenv("APP_PASSWORD", "").strip()
-    if raw_pw:
-        _pw_hash = bcrypt.hashpw(raw_pw.encode(), bcrypt.gensalt())
-        print("Auth enabled — APP_PASSWORD is set.")
+    _users = _load_users()
+
+    admin_user = os.getenv("ADMIN_USERNAME", "").strip()
+    admin_pw   = os.getenv("ADMIN_PASSWORD", "").strip()
+    if admin_user and admin_pw and admin_user not in _users:
+        _users[admin_user] = {"pw_hash_hex": _hash_pw(admin_pw), "role": "admin"}
+        _save_users()
+        print(f"Created admin account '{admin_user}'.")
+
+    if _auth_enabled():
+        print(f"Auth enabled — {len(_users)} user(s) registered.")
     else:
-        print("Auth disabled — set APP_PASSWORD in .env to enable login protection.")
+        print("Auth disabled — set ADMIN_USERNAME and ADMIN_PASSWORD in .env to enable.")
 
     app.state.cfg        = _load_cfg()
     app.state.collection = get_collection()
@@ -161,25 +212,64 @@ app.add_middleware(
 )
 
 
-# --- Auth endpoints (public) -------------------------------------------------
+# --- Auth endpoints ----------------------------------------------------------
 
 @app.post("/auth/login")
 async def login(body: LoginRequest):
-    """Verify password and return a signed JWT. If auth is disabled, always succeeds."""
-    if _auth_enabled() and not bcrypt.checkpw(body.password.encode(), _pw_hash):
-        raise HTTPException(status_code=401, detail="Incorrect password.")
-    return {"token": _make_token(), "auth_enabled": _auth_enabled()}
+    """Verify username + password and return a signed JWT."""
+    if not _auth_enabled():
+        token = _make_token("anonymous", "admin")
+        return {"token": token, "username": "anonymous", "role": "admin", "auth_enabled": False}
+    user = _users.get(body.username)
+    if not user or not _check_pw(body.password, user["pw_hash_hex"]):
+        raise HTTPException(status_code=401, detail="Incorrect username or password.")
+    token = _make_token(body.username, user["role"])
+    return {"token": token, "username": body.username, "role": user["role"], "auth_enabled": True}
 
 
 @app.get("/auth/status")
-async def auth_status(credentials: HTTPAuthorizationCredentials = Depends(_bearer)):
-    """Return whether auth is enabled and whether the supplied token is valid."""
-    if not _auth_enabled():
-        return {"auth_enabled": False, "authenticated": True}
-    ok = bool(credentials and _valid_token(credentials.credentials))
-    if not ok:
-        raise HTTPException(status_code=401, detail="Login required.")
-    return {"auth_enabled": True, "authenticated": True}
+async def auth_status(payload: dict = Depends(_require_auth)):
+    """Return current user info. Raises 401 if unauthenticated."""
+    return {
+        "auth_enabled": _auth_enabled(),
+        "authenticated": True,
+        "username": payload["sub"],
+        "role": payload["role"],
+    }
+
+
+@app.get("/auth/users")
+async def list_users(payload: dict = Depends(_require_admin)):
+    """Return the full user list. Admin only."""
+    return [{"username": u, "role": d["role"]} for u, d in _users.items()]
+
+
+@app.post("/auth/users")
+async def create_user(body: CreateUserRequest, payload: dict = Depends(_require_admin)):
+    """Create a new user account. Admin only."""
+    if not body.username.strip():
+        raise HTTPException(status_code=400, detail="Username cannot be empty.")
+    if body.username in _users:
+        raise HTTPException(status_code=409, detail=f"User '{body.username}' already exists.")
+    if body.role not in ("admin", "user"):
+        raise HTTPException(status_code=400, detail="Role must be 'admin' or 'user'.")
+    if not body.password:
+        raise HTTPException(status_code=400, detail="Password cannot be empty.")
+    _users[body.username] = {"pw_hash_hex": _hash_pw(body.password), "role": body.role}
+    _save_users()
+    return {"username": body.username, "role": body.role}
+
+
+@app.delete("/auth/users/{username}")
+async def delete_user(username: str, payload: dict = Depends(_require_admin)):
+    """Delete a user account. Admin only. Cannot delete yourself."""
+    if username not in _users:
+        raise HTTPException(status_code=404, detail=f"User '{username}' not found.")
+    if username == payload["sub"]:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account.")
+    del _users[username]
+    _save_users()
+    return {"deleted": username}
 
 
 # --- App endpoints (protected) -----------------------------------------------

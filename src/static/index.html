@@ -548,6 +548,72 @@ body::before {
   transition: background 0.15s, border-color 0.15s;
 }
 .retry-btn:hover { background: var(--bg-hover); border-color: var(--border-mid); }
+
+/* ── User bar ── */
+.sb-user {
+  padding: 8px 14px; border-top: 1px solid var(--border-faint);
+  display: flex; align-items: center; gap: 9px; flex-shrink: 0;
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; user-select: none;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.role-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; border-radius: 99px; padding: 1px 7px;
+}
+.role-badge.admin { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25); color: var(--accent-light); }
+.role-badge.user  { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.2);  color: var(--green); }
+.user-actions { display: flex; align-items: center; gap: 5px; }
+.icon-btn {
+  width: 26px; height: 26px; background: transparent;
+  border: 1px solid var(--border-soft); border-radius: var(--r-xs);
+  color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--bg-hover); border-color: var(--border-mid); color: var(--text-secondary); }
+.icon-btn svg { width: 12px; height: 12px; }
+
+/* ── Users modal list ── */
+.user-list { display: flex; flex-direction: column; gap: 5px; max-height: 260px; overflow-y: auto; }
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; background: var(--bg-overlay);
+  border: 1px solid var(--border-faint); border-radius: var(--r-sm);
+}
+.ur-avatar {
+  width: 27px; height: 27px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase;
+}
+.ur-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.ur-name { font-size: 12.5px; font-weight: 500; color: var(--text-primary); }
+.ur-del {
+  width: 26px; height: 26px; border-radius: var(--r-xs); flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.ur-del:hover:not(:disabled) { background: var(--red-bg); color: var(--red); }
+.ur-del:disabled { opacity: 0.3; cursor: not-allowed; }
+.ur-del svg { width: 12px; height: 12px; }
+.modal-divider { height: 1px; background: var(--border-faint); }
+.add-user-form { display: flex; flex-direction: column; gap: 8px; }
+.form-row-2 { display: flex; gap: 8px; }
+.form-row-2 .key-input-row { flex: 1; }
+.role-select {
+  background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 9px 10px; color: var(--text-primary);
+  font-family: inherit; font-size: 12px; outline: none; cursor: pointer;
+  transition: border-color 0.15s; flex-shrink: 0;
+}
+.role-select:focus { border-color: rgba(59,130,246,0.4); }
 </style>
 </head>
 <body>
@@ -604,6 +670,30 @@ body::before {
         <input type="file" id="file-input" accept=".pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf,.toml,.yaml,.yml,.json,.xml,.csv,.html,.htm,.docx,.xlsx,.xls,.pptx,.ppt,.epub,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp" hidden>
         <div id="ingest-status"></div>
         <div id="file-list"></div>
+      </div>
+    </div>
+
+    <div class="sb-user" id="sb-user" style="display:none">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name-lbl">—</div>
+        <span class="role-badge user" id="role-badge">user</span>
+      </div>
+      <div class="user-actions">
+        <button class="icon-btn" id="manage-users-btn" title="Manage users" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="signout-btn" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -686,7 +776,12 @@ body::before {
       <div class="modal-icon-box">🔒</div>
       <div>
         <p class="modal-title">Sign in to RAGged</p>
-        <p class="modal-sub">Enter the password set in your <code style="font-size:11px;color:var(--accent-light)">.env</code> file to continue.</p>
+        <p class="modal-sub">Use the account set up via <code style="font-size:11px;color:var(--accent-light)">ADMIN_USERNAME</code> / <code style="font-size:11px;color:var(--accent-light)">ADMIN_PASSWORD</code> in your <code style="font-size:11px;color:var(--accent-light)">.env</code>.</p>
+      </div>
+    </div>
+    <div class="key-group">
+      <div class="key-input-row">
+        <input type="text" id="login-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
       </div>
     </div>
     <div class="key-group">
@@ -697,6 +792,42 @@ body::before {
     </div>
     <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
     <button class="save-btn" id="login-submit-btn">Sign in</button>
+  </div>
+</div>
+
+<!-- Users modal (admin only) -->
+<div id="users-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-icon-box">👥</div>
+      <div>
+        <p class="modal-title">User Management</p>
+        <p class="modal-sub">Manage who can access this RAGged instance.</p>
+      </div>
+    </div>
+    <div class="user-list" id="user-list"></div>
+    <div class="modal-divider"></div>
+    <div class="add-user-form">
+      <p class="blk-label" style="margin-bottom:0">Add user</p>
+      <div class="key-input-row">
+        <input type="text" id="new-user-username" placeholder="Username" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-row-2">
+        <div class="key-input-row">
+          <input type="password" id="new-user-password" placeholder="Password" autocomplete="new-password">
+          <button class="reveal-btn" data-for="new-user-password" type="button">👁</button>
+        </div>
+        <select class="role-select" id="new-user-role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div id="add-user-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="add-user-btn">Add user</button>
+    </div>
+    <div class="modal-footer">
+      <span class="modal-skip" id="close-users-btn">Close</span>
+    </div>
   </div>
 </div>
 
@@ -744,11 +875,15 @@ body::before {
 <script>
 'use strict';
 
-/* ── Auth token ── */
+/* ── Auth token + user info ── */
 const LS_TOKEN = 'rag_auth_token';
-function getToken()     { return localStorage.getItem(LS_TOKEN) || ''; }
-function storeToken(t)  { localStorage.setItem(LS_TOKEN, t); }
-function clearToken()   { localStorage.removeItem(LS_TOKEN); }
+const LS_USER  = 'rag_user_info';
+function getToken()        { return localStorage.getItem(LS_TOKEN) || ''; }
+function storeToken(t)     { localStorage.setItem(LS_TOKEN, t); }
+function clearToken()      { localStorage.removeItem(LS_TOKEN); }
+function getUser()         { try { return JSON.parse(localStorage.getItem(LS_USER))||{}; } catch { return {}; } }
+function storeUser(u)      { localStorage.setItem(LS_USER, JSON.stringify(u)); }
+function clearUser()       { localStorage.removeItem(LS_USER); }
 
 /* ── Keys ── */
 const LS_OR = 'rag_or_key', LS_CO = 'rag_co_key';
@@ -930,44 +1065,142 @@ function showOffline() { offlineScreen.classList.add('open'); setConnState('offl
 function hideOffline() { offlineScreen.classList.remove('open'); }
 document.getElementById('retry-btn').addEventListener('click', async () => { hideOffline(); await init(); });
 
+/* ── User bar ── */
+function updateUserBar(username, role) {
+  const bar = document.getElementById('sb-user');
+  if (!username) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  document.getElementById('user-avatar').textContent = username[0].toUpperCase();
+  document.getElementById('user-name-lbl').textContent = username;
+  const badge = document.getElementById('role-badge');
+  badge.textContent = role;
+  badge.className = 'role-badge ' + (role === 'admin' ? 'admin' : 'user');
+  document.getElementById('manage-users-btn').style.display = role === 'admin' ? 'flex' : 'none';
+}
+
+document.getElementById('signout-btn').addEventListener('click', () => {
+  clearToken(); clearUser();
+  document.getElementById('sb-user').style.display = 'none';
+  showLoginModal();
+});
+
 /* ── Login modal ── */
 const loginModal = document.getElementById('login-modal');
 function showLoginModal() {
+  document.getElementById('login-user-input').value = '';
   document.getElementById('login-pw-input').value = '';
   document.getElementById('login-error').style.display = 'none';
   loginModal.classList.add('open');
-  setTimeout(() => document.getElementById('login-pw-input').focus(), 80);
+  setTimeout(() => document.getElementById('login-user-input').focus(), 80);
 }
 function hideLoginModal() { loginModal.classList.remove('open'); }
 
 document.getElementById('login-submit-btn').addEventListener('click', doLogin);
-document.getElementById('login-pw-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
+['login-user-input','login-pw-input'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); })
+);
 
 async function doLogin() {
-  const pw  = document.getElementById('login-pw-input').value;
-  const err = document.getElementById('login-error');
+  const username = document.getElementById('login-user-input').value.trim();
+  const pw       = document.getElementById('login-pw-input').value;
+  const err      = document.getElementById('login-error');
   err.style.display = 'none';
+  if (!username) { err.textContent='Username is required.'; err.style.display='block'; return; }
   try {
     const r = await fetch('/auth/login', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({password: pw}),
+      body: JSON.stringify({username, password: pw}),
     });
     if (!r.ok) {
-      err.textContent = 'Incorrect password.';
+      err.textContent = 'Incorrect username or password.';
       err.style.display = 'block';
       document.getElementById('login-pw-input').select();
       return;
     }
     const data = await r.json();
     storeToken(data.token);
+    storeUser({username: data.username, role: data.role});
     hideLoginModal();
-    // proceed with normal post-auth init
+    updateUserBar(data.username, data.role);
     if (!hasKeys()) showSetupModal();
   } catch {
     err.textContent = 'Cannot reach server — is it running?';
+    err.style.display = 'block';
+  }
+}
+
+/* ── Users modal ── */
+const usersModal = document.getElementById('users-modal');
+function showUsersModal() { loadUserList(); usersModal.classList.add('open'); }
+function hideUsersModal() { usersModal.classList.remove('open'); }
+document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
+document.getElementById('close-users-btn').addEventListener('click', hideUsersModal);
+
+async function loadUserList() {
+  const list = document.getElementById('user-list');
+  list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);padding:6px 4px">Loading…</p>';
+  try {
+    const r = await fetch('/auth/users', { headers: getHeaders() });
+    if (!r.ok) { list.innerHTML = '<p style="font-size:12px;color:var(--red);padding:6px 4px">Failed to load users.</p>'; return; }
+    const users = await r.json();
+    list.innerHTML = '';
+    const me = getUser().username;
+    users.forEach(u => {
+      const el = mk('div', 'user-row');
+      el.innerHTML = `
+        <div class="ur-avatar">${esc(u.username[0].toUpperCase())}</div>
+        <div class="ur-info">
+          <span class="ur-name">${esc(u.username)}${u.username===me?' <span style="font-size:10px;color:var(--text-muted)">(you)</span>':''}</span>
+          <span class="role-badge ${u.role}">${esc(u.role)}</span>
+        </div>
+        <button class="ur-del" title="Delete user" ${u.username===me?'disabled':''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </button>`;
+      if (u.username !== me) {
+        el.querySelector('.ur-del').addEventListener('click', async () => {
+          if (!confirm(`Delete user "${u.username}"? This cannot be undone.`)) return;
+          const dr = await fetch(`/auth/users/${encodeURIComponent(u.username)}`, { method:'DELETE', headers:getHeaders() });
+          if (dr.ok) loadUserList();
+        });
+      }
+      list.appendChild(el);
+    });
+  } catch { list.innerHTML = '<p style="font-size:12px;color:var(--red);padding:6px 4px">Error loading users.</p>'; }
+}
+
+document.getElementById('add-user-btn').addEventListener('click', addUser);
+document.getElementById('new-user-password').addEventListener('keydown', e => { if (e.key==='Enter') addUser(); });
+
+async function addUser() {
+  const username = document.getElementById('new-user-username').value.trim();
+  const password = document.getElementById('new-user-password').value;
+  const role     = document.getElementById('new-user-role').value;
+  const err      = document.getElementById('add-user-error');
+  err.style.display = 'none';
+  if (!username) { err.textContent='Username required.'; err.style.display='block'; return; }
+  if (!password) { err.textContent='Password required.'; err.style.display='block'; return; }
+  try {
+    const r = await fetch('/auth/users', {
+      method: 'POST',
+      headers: getHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({username, password, role}),
+    });
+    if (!r.ok) {
+      const d = await r.json();
+      err.textContent = d.detail || 'Failed to create user.';
+      err.style.display = 'block';
+      return;
+    }
+    document.getElementById('new-user-username').value = '';
+    document.getElementById('new-user-password').value = '';
+    loadUserList();
+  } catch {
+    err.textContent = 'Cannot reach server.';
     err.style.display = 'block';
   }
 }
@@ -979,9 +1212,13 @@ async function init() {
     if (!r.ok) { showOffline(); return; }
     setConnState('online');
 
-    // Check auth status (validates token if present)
     const ar = await fetch('/auth/status', { headers: getHeaders() });
     if (!ar.ok) { showLoginModal(); return; }
+    const ad = await ar.json();
+    if (ad.username) {
+      storeUser({username: ad.username, role: ad.role});
+      updateUserBar(ad.username, ad.role);
+    }
 
     if (!hasKeys()) showSetupModal();
   } catch { showOffline(); }
@@ -993,6 +1230,7 @@ async function friendlyError(res) {
     if (d==='Login required.') { setTimeout(showLoginModal, 150); return '🔒 Session expired — please log in again.'; }
     return '🔑 API key missing or invalid — click ⚙ to update your keys.';
   }
+  if (res.status===403) return '🚫 Admin access required.';
   if (res.status===400) return d||'Invalid request.';
   if (res.status===500) return `Server error: ${d||'something went wrong.'}`;
   return `Unexpected error (${res.status})${d?': '+d:''}.`;
@@ -1045,11 +1283,7 @@ async function ingestFile(file) {
   form.append('file', file);
   try {
     const res = await fetch('/ingest', { method:'POST', headers:getHeaders(), body:form });
-    if (!res.ok) {
-      setStatus(await friendlyError(res), 'error');
-      if (res.status===401) setTimeout(showSetupModal,600);
-      return;
-    }
+    if (!res.ok) { setStatus(await friendlyError(res), 'error'); return; }
     const data = await res.json();
     setStatus(`✓ ${data.chunks_ingested} chunks indexed`, 'success');
     addFilePill(data.filename, data.chunks_ingested, true);
@@ -1243,7 +1477,6 @@ async function submitQuery() {
       thinkWrap.remove(); ansSec.style.display='block';
       ansText.textContent = await friendlyError(res);
       setPipDone(pipEls, pipWrap);
-      if (res.status===401) setTimeout(showSetupModal,600);
       return;
     }
 

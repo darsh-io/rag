@@ -5,3 +5,4 @@ CLAUDE.md
 __pycache__/
 *.pyc
 chroma_db/
+config/users.json
