@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 chroma_db/
 config/users.json
+config/topics.json
+config/chats/
+config/.server_secret

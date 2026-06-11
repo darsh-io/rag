@@ -1,7 +1,7 @@
 import requests
 import json
 
-from ragPipeline.vectorstore import query as chroma_query
+from ragPipeline.vectorstore import query as chroma_query, get_filtered
 from ragPipeline.reranker import rerank
 from ragPipeline.bm25 import bm25_search
 from ragPipeline.rrf import reciprocal_rank_fusion
@@ -31,13 +31,13 @@ def generate_hypothetical_doc(question, api_key, chat_url, llm_model):
     return call_llm(messages, api_key, chat_url, llm_model)
 
 
-def build_rag_context(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
+def build_rag_context(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5, source_filter=None):
     """Run HyDE retrieval, fusion, and reranking; return (chunks, messages, hyde_doc) ready for the LLM."""
     # HyDE: embed a hypothetical answer rather than the raw question for denser semantic match
     hyde_doc = generate_hypothetical_doc(question, api_key, chat_url, llm_model)
 
     # Dense retrieval using the hypothetical doc embedding (top 10)
-    dense_results = chroma_query(hyde_doc, collection, api_key, embed_url, embed_model, n_results=10)
+    dense_results = chroma_query(hyde_doc, collection, api_key, embed_url, embed_model, n_results=10, source_filter=source_filter)
     dense_ranked = [
         {"id": id_, "doc": doc, "meta": meta, "rank": rank}
         for rank, (id_, doc, meta) in enumerate(zip(
@@ -48,8 +48,11 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
     ]
 
     # Sparse BM25 uses the original question — keyword matching works better on the real query
-    all_data = collection.get()
-    sparse_ranked = bm25_search(question, all_data["ids"], all_data["documents"], all_data["metadatas"], top_n=10)
+    filtered_data = get_filtered(collection, source_filter)
+    if not filtered_data["ids"]:
+        msg = "No documents match this topic's sources." if source_filter else "No documents have been ingested yet."
+        raise ValueError(msg)
+    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=10)
 
     # RRF fusion → top 10, then Cohere rerank → top_k
     fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=10)
@@ -110,13 +113,14 @@ def call_llm_stream(messages, api_key, chat_url, llm_model):
             continue
 
 
-def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5):
+def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5, source_filter=None):
     """Run the full RAG pipeline with HyDE — retrieve, fuse, rerank, then answer with conversation history."""
     chunks, messages, hyde_doc = build_rag_context(
         question, history, collection,
         api_key, embed_url, embed_model,
         chat_url, llm_model,
         cohere_api_key, reranker_model, top_k,
+        source_filter=source_filter,
     )
     answer = call_llm(messages, api_key, chat_url, llm_model)
 

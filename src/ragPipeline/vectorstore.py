@@ -36,13 +36,41 @@ def ingest(file_path, collection, api_key, api_url, model, vision_cfg=None, sour
     return len(chunks)
 
 
-def query(query_text, collection, api_key, api_url, model, n_results=5):
+def query(query_text, collection, api_key, api_url, model, n_results=5, source_filter=None):
     """Embed query_text and return the n_results nearest chunks from the Chroma collection."""
     embedding = getEmbeddings(api_key, api_url, model, query_text)
-    results = collection.query(
+    kwargs = dict(
         query_embeddings=[embedding],
         n_results=n_results,
-        # ids are always returned by Chroma and cannot be listed in include
         include=["documents", "metadatas", "distances"],
     )
-    return results
+    if source_filter:
+        where = {"source": {"$in": list(source_filter)}}
+        kwargs["where"] = where
+        # Chroma errors if n_results > matching docs — cap it
+        available = len(collection.get(where=where, include=[])["ids"])
+        if available == 0:
+            return {"ids": [[]], "documents": [[]], "metadatas": [[]], "distances": [[]]}
+        kwargs["n_results"] = min(n_results, available)
+    return collection.query(**kwargs)
+
+
+def get_filtered(collection, source_filter=None):
+    """Get all chunks, optionally restricted to a list of source names."""
+    if source_filter:
+        return collection.get(
+            where={"source": {"$in": list(source_filter)}},
+            include=["documents", "metadatas"],
+        )
+    return collection.get()
+
+
+def list_sources(collection):
+    """Return unique source names in the collection with chunk counts."""
+    data = collection.get(include=["metadatas"])
+    counts: dict[str, int] = {}
+    for meta in data["metadatas"]:
+        src = meta.get("source", "")
+        if src:
+            counts[src] = counts.get(src, 0) + 1
+    return [{"source": s, "chunks": c} for s, c in sorted(counts.items())]

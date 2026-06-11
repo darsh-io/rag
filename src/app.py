@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import os
 import secrets
@@ -6,10 +7,14 @@ import tempfile
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 import bcrypt
 import jwt
 import yaml
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +24,7 @@ from pydantic import BaseModel
 
 from query import build_rag_context, call_llm_stream, rag_query
 from ragPipeline.chunk import SUPPORTED_EXTENSIONS
-from ragPipeline.vectorstore import get_collection, ingest
+from ragPipeline.vectorstore import get_collection, ingest, list_sources
 
 
 # --- Auth --------------------------------------------------------------------
@@ -97,6 +102,65 @@ def _require_admin(payload: dict = Depends(_require_auth)) -> dict:
     return payload
 
 
+# --- Topics ------------------------------------------------------------------
+
+_TOPICS_PATH = Path(__file__).parent.parent / "config" / "topics.json"
+_topics: dict = {}  # {topic_id: {id, name, sources: [], created_by, created_at}}
+
+
+def _load_topics() -> dict:
+    if _TOPICS_PATH.exists():
+        try:
+            return json.loads(_TOPICS_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_topics() -> None:
+    _TOPICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _TOPICS_PATH.write_text(json.dumps(_topics, indent=2), encoding="utf-8")
+
+
+# --- Chat storage (encrypted per-user) --------------------------------------
+
+_SECRET_PATH = Path(__file__).parent.parent / "config" / ".server_secret"
+_CHATS_DIR   = Path(__file__).parent.parent / "config" / "chats"
+_server_secret: bytes = b""
+
+
+def _load_or_create_secret() -> bytes:
+    if _SECRET_PATH.exists():
+        return bytes.fromhex(_SECRET_PATH.read_text().strip())
+    raw = secrets.token_bytes(32)
+    _SECRET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _SECRET_PATH.write_text(raw.hex())
+    return raw
+
+
+def _fernet(username: str) -> Fernet:
+    """Derive a stable per-user Fernet key from the server secret via HKDF."""
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=username.encode(), info=b"ragged-chat")
+    return Fernet(base64.urlsafe_b64encode(hkdf.derive(_server_secret)))
+
+
+def _load_chats(username: str) -> dict:
+    path = _CHATS_DIR / f"{username}.enc"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(_fernet(username).decrypt(path.read_bytes()))
+    except Exception:
+        return {}
+
+
+def _save_chats(username: str, chats: dict) -> None:
+    _CHATS_DIR.mkdir(parents=True, exist_ok=True)
+    (_CHATS_DIR / f"{username}.enc").write_bytes(
+        _fernet(username).encrypt(json.dumps(chats).encode())
+    )
+
+
 # --- Pydantic models ---------------------------------------------------------
 
 class LoginRequest(BaseModel):
@@ -110,6 +174,22 @@ class CreateUserRequest(BaseModel):
     role: str = "user"
 
 
+class CreateTopicRequest(BaseModel):
+    name: str
+
+
+class AddTopicSourceRequest(BaseModel):
+    source_name: str
+
+
+class UpsertChatRequest(BaseModel):
+    id: str
+    title: str
+    createdAt: str
+    topicId: str | None = None
+    messages: list[Any] = []
+
+
 class IngestResponse(BaseModel):
     filename: str
     chunks_ingested: int
@@ -118,6 +198,7 @@ class IngestResponse(BaseModel):
 class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
+    topic_id: str | None = None
 
 
 class Source(BaseModel):
@@ -181,9 +262,12 @@ def _require_keys(cfg: dict):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _users
+    global _users, _topics, _server_secret
     load_dotenv()
-    _users = _load_users()
+
+    _server_secret = _load_or_create_secret()
+    _users  = _load_users()
+    _topics = _load_topics()
 
     admin_user = os.getenv("ADMIN_USERNAME", "").strip()
     admin_pw   = os.getenv("ADMIN_PASSWORD", "").strip()
@@ -193,7 +277,7 @@ async def lifespan(app: FastAPI):
         print(f"Created admin account '{admin_user}'.")
 
     if _auth_enabled():
-        print(f"Auth enabled — {len(_users)} user(s) registered.")
+        print(f"Auth enabled — {len(_users)} user(s), {len(_topics)} topic(s).")
     else:
         print("Auth disabled — set ADMIN_USERNAME and ADMIN_PASSWORD in .env to enable.")
 
@@ -272,6 +356,114 @@ async def delete_user(username: str, payload: dict = Depends(_require_admin)):
     return {"deleted": username}
 
 
+# --- Topics endpoints --------------------------------------------------------
+
+@app.get("/topics")
+async def get_topics(payload: dict = Depends(_require_auth)):
+    """Return all topics. Any authenticated user can read."""
+    return list(_topics.values())
+
+
+@app.post("/topics")
+async def create_topic(body: CreateTopicRequest, payload: dict = Depends(_require_admin)):
+    """Create a new topic. Admin only."""
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="Topic name cannot be empty.")
+    topic_id = secrets.token_hex(8)
+    _topics[topic_id] = {
+        "id": topic_id,
+        "name": body.name.strip(),
+        "sources": [],
+        "created_by": payload["sub"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _save_topics()
+    return _topics[topic_id]
+
+
+@app.delete("/topics/{topic_id}")
+async def delete_topic(topic_id: str, payload: dict = Depends(_require_admin)):
+    """Delete a topic. Admin only."""
+    if topic_id not in _topics:
+        raise HTTPException(status_code=404, detail="Topic not found.")
+    del _topics[topic_id]
+    _save_topics()
+    return {"deleted": topic_id}
+
+
+@app.post("/topics/{topic_id}/sources")
+async def add_topic_source(topic_id: str, body: AddTopicSourceRequest, payload: dict = Depends(_require_admin)):
+    """Add a source to a topic. Admin only."""
+    if topic_id not in _topics:
+        raise HTTPException(status_code=404, detail="Topic not found.")
+    if body.source_name not in _topics[topic_id]["sources"]:
+        _topics[topic_id]["sources"].append(body.source_name)
+        _save_topics()
+    return _topics[topic_id]
+
+
+@app.delete("/topics/{topic_id}/sources/{source_name:path}")
+async def remove_topic_source(topic_id: str, source_name: str, payload: dict = Depends(_require_admin)):
+    """Remove a source from a topic. Admin only."""
+    if topic_id not in _topics:
+        raise HTTPException(status_code=404, detail="Topic not found.")
+    if source_name in _topics[topic_id]["sources"]:
+        _topics[topic_id]["sources"].remove(source_name)
+        _save_topics()
+    return _topics[topic_id]
+
+
+# --- Sources endpoint --------------------------------------------------------
+
+@app.get("/sources")
+async def get_sources(request: Request, payload: dict = Depends(_require_auth)):
+    """Return unique source names currently in the vector store."""
+    return list_sources(request.app.state.collection)
+
+
+# --- Chat endpoints ----------------------------------------------------------
+
+@app.get("/chats")
+async def list_chats(payload: dict = Depends(_require_auth)):
+    """Return metadata list of the current user's chat sessions."""
+    chats = _load_chats(payload["sub"])
+    return sorted(
+        [{"id": s["id"], "title": s.get("title", ""), "createdAt": s.get("createdAt", ""),
+          "topicId": s.get("topicId"), "messageCount": len(s.get("messages", []))}
+         for s in chats.values()],
+        key=lambda s: s["createdAt"], reverse=True,
+    )
+
+
+@app.get("/chats/{session_id}")
+async def get_chat(session_id: str, payload: dict = Depends(_require_auth)):
+    """Return a single full chat session for the current user."""
+    chats = _load_chats(payload["sub"])
+    if session_id not in chats:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    return chats[session_id]
+
+
+@app.put("/chats/{session_id}")
+async def upsert_chat(session_id: str, body: UpsertChatRequest, payload: dict = Depends(_require_auth)):
+    """Create or update a chat session for the current user."""
+    chats = _load_chats(payload["sub"])
+    chats[session_id] = body.model_dump()
+    _save_chats(payload["sub"], chats)
+    return {"ok": True}
+
+
+@app.delete("/chats/{session_id}")
+async def delete_chat(session_id: str, payload: dict = Depends(_require_auth)):
+    """Delete a chat session for the current user."""
+    chats = _load_chats(payload["sub"])
+    if session_id not in chats:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    del chats[session_id]
+    _save_chats(payload["sub"], chats)
+    return {"deleted": session_id}
+
+
 # --- App endpoints (protected) -----------------------------------------------
 
 @app.get("/health")
@@ -333,6 +525,14 @@ async def delete_document(source_name: str, request: Request):
     return {"deleted": source_name}
 
 
+def _source_filter_for(topic_id: str | None) -> list | None:
+    """Return the source list for a topic_id, or None for no filter."""
+    if not topic_id or topic_id not in _topics:
+        return None
+    sources = _topics[topic_id]["sources"]
+    return sources if sources else None
+
+
 @app.post("/query", response_model=QueryResponse, dependencies=[Depends(_require_auth)])
 async def query_endpoint(request: Request, body: QueryRequest):
     """Run the full RAG pipeline and return the answer with cited sources."""
@@ -342,6 +542,7 @@ async def query_endpoint(request: Request, body: QueryRequest):
     if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question must not be empty.")
 
+    source_filter = _source_filter_for(body.topic_id)
     try:
         answer, chunks = rag_query(
             body.question, [], request.app.state.collection,
@@ -349,6 +550,7 @@ async def query_endpoint(request: Request, body: QueryRequest):
             cfg["chat_url"], cfg["llm_model"],
             cfg["cohere_api_key"], cfg["reranker_model"],
             top_k=body.top_k,
+            source_filter=source_filter,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -369,6 +571,7 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
     if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question must not be empty.")
 
+    source_filter = _source_filter_for(body.topic_id)
     try:
         chunks, messages, hyde_doc = await asyncio.to_thread(
             build_rag_context,
@@ -377,6 +580,7 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
             cfg["chat_url"], cfg["llm_model"],
             cfg["cohere_api_key"], cfg["reranker_model"],
             body.top_k,
+            source_filter,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

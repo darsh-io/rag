@@ -579,6 +579,110 @@ body::before {
 .icon-btn:hover { background: var(--bg-hover); border-color: var(--border-mid); color: var(--text-secondary); }
 .icon-btn svg { width: 12px; height: 12px; }
 
+/* ── Session delete ── */
+.si-del {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.session-item:hover .si-del { opacity: 1; }
+.si-del:hover { background: var(--red-bg); color: var(--red); }
+.si-del svg { width: 10px; height: 10px; }
+
+/* ── Topic chip + dropdown ── */
+.topic-chip {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+  padding: 3px 9px; border-radius: 99px;
+  background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  color: var(--text-muted); font-family: inherit; font-size: 11px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.topic-chip.active { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); color: var(--accent-light); }
+.topic-chip:hover  { background: var(--bg-hover); border-color: var(--border-mid); color: var(--text-secondary); }
+.topic-chip svg    { width: 11px; height: 11px; flex-shrink: 0; }
+.topic-dropdown {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  background: var(--bg-elevated); border: 1px solid var(--border-soft);
+  border-radius: var(--r-md); padding: 5px;
+  min-width: 210px; max-width: 300px; z-index: 50;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: modalIn 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+.td-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 10px; border-radius: var(--r-sm);
+  cursor: pointer; font-size: 12px; color: var(--text-secondary);
+  transition: background 0.12s; user-select: none;
+}
+.td-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.td-item.selected { background: rgba(59,130,246,0.1); color: var(--accent-light); }
+.td-item-name { flex: 1; font-weight: 500; }
+.td-item-count { font-size: 10px; color: var(--text-muted); }
+.td-sep { height: 1px; background: var(--border-faint); margin: 4px 5px; }
+
+/* ── Topics modal ── */
+.topics-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.topic-card {
+  background: var(--bg-overlay); border: 1px solid var(--border-faint);
+  border-radius: var(--r-sm); padding: 11px 13px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.tc-header { display: flex; align-items: center; gap: 8px; }
+.tc-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+.tc-del {
+  width: 24px; height: 24px; border-radius: var(--r-xs); flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.tc-del:hover { background: var(--red-bg); color: var(--red); }
+.tc-del svg { width: 12px; height: 12px; }
+.tc-sources { display: flex; flex-wrap: wrap; gap: 5px; }
+.src-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg-raised); border: 1px solid var(--border-soft);
+  border-radius: 99px; padding: 2px 8px 2px 10px;
+  font-size: 10.5px; color: var(--text-secondary);
+}
+.src-tag-del {
+  background: none; border: none; cursor: pointer; padding: 0; line-height: 1;
+  color: var(--text-muted); font-size: 13px; display: flex; align-items: center;
+  transition: color 0.15s;
+}
+.src-tag-del:hover { color: var(--red); }
+.tc-empty { font-size: 11px; color: var(--text-hint); font-style: italic; }
+.tc-add-row { display: flex; gap: 6px; }
+.tc-add-row select {
+  flex: 1; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 6px 8px; color: var(--text-primary);
+  font-family: inherit; font-size: 11.5px; outline: none; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.tc-add-row select:focus { border-color: rgba(59,130,246,0.4); }
+.tc-add-btn {
+  background: var(--bg-raised); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 5px 12px; color: var(--text-primary);
+  font-family: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: background 0.15s, border-color 0.15s;
+}
+.tc-add-btn:hover { background: var(--bg-hover); border-color: var(--border-mid); }
+.new-topic-row { display: flex; gap: 6px; }
+.new-topic-row input {
+  flex: 1; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 8px 12px; color: var(--text-primary);
+  font-family: inherit; font-size: 12px; outline: none;
+  transition: border-color 0.15s;
+}
+.new-topic-row input:focus { border-color: rgba(59,130,246,0.4); }
+.new-topic-row button {
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent)); color: #fff; border: none;
+  border-radius: var(--r-sm); padding: 8px 14px; font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+}
+.new-topic-row button:hover { opacity: 0.88; }
+
 /* ── Users modal list ── */
 .user-list { display: flex; flex-direction: column; gap: 5px; max-height: 260px; overflow-y: auto; }
 .user-row {
@@ -680,6 +784,11 @@ body::before {
         <span class="role-badge user" id="role-badge">user</span>
       </div>
       <div class="user-actions">
+        <button class="icon-btn" id="manage-topics-btn" title="Manage topics" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h4l2-4h6l2 4h4a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="manage-users-btn" title="Manage users" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
@@ -735,10 +844,16 @@ body::before {
       </div>
     </div>
     <div id="input-area">
-      <div class="input-wrap">
+      <div class="input-wrap" style="position:relative">
+        <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
         <div class="input-composer">
           <textarea id="question-input" placeholder="Ask a question about your documents…" rows="2"></textarea>
           <div class="composer-footer">
+            <button class="topic-chip" id="topic-chip" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
+              <span class="tc-label">All sources</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
             <div class="cf-hint"><kbd>⌘</kbd><kbd>↵</kbd> to send</div>
             <button id="ask-btn">
               <span id="ask-label">Ask</span>
@@ -792,6 +907,27 @@ body::before {
     </div>
     <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
     <button class="save-btn" id="login-submit-btn">Sign in</button>
+  </div>
+</div>
+
+<!-- Topics modal (admin only) -->
+<div id="topics-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-icon-box">📂</div>
+      <div>
+        <p class="modal-title">Topics</p>
+        <p class="modal-sub">Group documents into topics. Users can filter any chat to a topic.</p>
+      </div>
+    </div>
+    <div class="new-topic-row">
+      <input type="text" id="new-topic-name" placeholder="New topic name…" autocomplete="off" spellcheck="false">
+      <button id="create-topic-btn">Create</button>
+    </div>
+    <div id="topics-list" class="topics-list"></div>
+    <div class="modal-footer">
+      <span class="modal-skip" id="close-topics-btn">Close</span>
+    </div>
   </div>
 </div>
 
@@ -899,30 +1035,55 @@ function getHeaders(extra={}) {
   return h;
 }
 
-/* ── Session persistence ── */
-const LS_SESSIONS = 'rag_chat_sessions';
-const LS_FILES    = 'rag_ingested_files';
-function loadSessions()  { try { return JSON.parse(localStorage.getItem(LS_SESSIONS))||[]; } catch { return []; } }
-function storeSessions(s) { localStorage.setItem(LS_SESSIONS, JSON.stringify(s.slice(0,60))); }
-function loadFiles()     { try { return JSON.parse(localStorage.getItem(LS_FILES))||[]; } catch { return []; } }
-function storeFiles(f)   { localStorage.setItem(LS_FILES, JSON.stringify(f)); }
+/* ── Session storage (server-side, per-user encrypted) ── */
+const LS_FILES = 'rag_ingested_files';
+function loadFiles()   { try { return JSON.parse(localStorage.getItem(LS_FILES))||[]; } catch { return []; } }
+function storeFiles(f) { localStorage.setItem(LS_FILES, JSON.stringify(f)); }
 
 let currentSession = null;
 let activeChatId   = null;
 let fileRecords    = loadFiles();
 let fileCount      = fileRecords.length;
+let sessions       = [];   // metadata cache from GET /chats
+let topics         = [];   // from GET /topics
 
 function newSessionObj() {
-  return { id: Date.now().toString(), title: '', createdAt: new Date().toISOString(), messages: [] };
+  return { id: Date.now().toString(), title: '', createdAt: new Date().toISOString(), topicId: null, messages: [] };
 }
 
-function persistCurrentSession() {
-  if (!currentSession || currentSession.messages.length === 0) return;
-  const sessions = loadSessions();
-  const idx = sessions.findIndex(s => s.id === currentSession.id);
-  if (idx >= 0) sessions[idx] = currentSession;
-  else sessions.unshift(currentSession);
-  storeSessions(sessions);
+async function fetchSessions() {
+  try {
+    const r = await fetch('/chats', { headers: getHeaders() });
+    if (!r.ok) return;
+    sessions = await r.json();
+    renderSessions();
+  } catch {}
+}
+
+async function saveSession(session) {
+  if (!session || !session.messages.length) return;
+  try {
+    await fetch(`/chats/${session.id}`, {
+      method: 'PUT',
+      headers: getHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify(session),
+    });
+    const meta = {id: session.id, title: session.title, createdAt: session.createdAt,
+                  topicId: session.topicId||null, messageCount: session.messages.length};
+    const idx = sessions.findIndex(s => s.id === session.id);
+    if (idx >= 0) sessions[idx] = meta; else sessions.unshift(meta);
+    renderSessions();
+  } catch {}
+}
+
+async function deleteSessionRemote(id) {
+  try { await fetch(`/chats/${id}`, { method: 'DELETE', headers: getHeaders() }); } catch {}
+  sessions = sessions.filter(s => s.id !== id);
+  if (activeChatId === id) {
+    currentSession = newSessionObj(); activeChatId = currentSession.id;
+    clearOutput();
+  }
+  renderSessions();
 }
 
 function relTime(iso) {
@@ -938,7 +1099,6 @@ function renderSessions() {
   const list = document.getElementById('sessions-list');
   const noEl = document.getElementById('no-sessions');
   list.querySelectorAll('.session-item').forEach(e => e.remove());
-  const sessions = loadSessions();
   if (!sessions.length) { noEl.style.display = 'block'; return; }
   noEl.style.display = 'none';
   sessions.forEach(s => {
@@ -951,19 +1111,34 @@ function renderSessions() {
       <div class="si-info">
         <div class="si-title">${esc(s.title||'Untitled')}</div>
         <div class="si-time">${relTime(s.createdAt)}</div>
-      </div>`;
+      </div>
+      <button class="si-del" title="Delete chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>`;
+    el.querySelector('.si-del').addEventListener('click', async e => {
+      e.stopPropagation();
+      if (!confirm('Delete this chat?')) return;
+      await deleteSessionRemote(s.id);
+    });
     el.addEventListener('click', () => loadSessionById(s.id));
     list.appendChild(el);
   });
 }
 
-function loadSessionById(id) {
-  const s = loadSessions().find(x => x.id === id);
-  if (!s) return;
-  currentSession = JSON.parse(JSON.stringify(s));
-  activeChatId   = id;
-  renderSessions();
-  renderHistory(s);
+async function loadSessionById(id) {
+  try {
+    const r = await fetch(`/chats/${id}`, { headers: getHeaders() });
+    if (!r.ok) return;
+    const s = await r.json();
+    currentSession = s;
+    activeChatId   = id;
+    currentTopicId = s.topicId || null;
+    renderTopicChip();
+    renderSessions();
+    renderHistory(s);
+  } catch {}
 }
 
 function renderHistory(session) {
@@ -1075,7 +1250,8 @@ function updateUserBar(username, role) {
   const badge = document.getElementById('role-badge');
   badge.textContent = role;
   badge.className = 'role-badge ' + (role === 'admin' ? 'admin' : 'user');
-  document.getElementById('manage-users-btn').style.display = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('manage-users-btn').style.display  = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('manage-topics-btn').style.display = role === 'admin' ? 'flex' : 'none';
 }
 
 document.getElementById('signout-btn').addEventListener('click', () => {
@@ -1205,6 +1381,159 @@ async function addUser() {
   }
 }
 
+/* ── Topics ── */
+let currentTopicId = null;
+
+async function fetchTopics() {
+  try {
+    const r = await fetch('/topics', { headers: getHeaders() });
+    if (!r.ok) return;
+    topics = await r.json();
+    renderTopicChip();
+  } catch {}
+}
+
+function renderTopicChip() {
+  const chip = document.getElementById('topic-chip');
+  if (!topics.length) { chip.style.display = 'none'; return; }
+  chip.style.display = 'flex';
+  if (currentTopicId) {
+    const t = topics.find(t => t.id === currentTopicId);
+    chip.classList.add('active');
+    chip.querySelector('.tc-label').textContent = t ? t.name : 'Unknown topic';
+  } else {
+    chip.classList.remove('active');
+    chip.querySelector('.tc-label').textContent = 'All sources';
+  }
+}
+
+const topicDrop = document.getElementById('topic-dropdown');
+document.getElementById('topic-chip').addEventListener('click', e => {
+  e.stopPropagation();
+  if (topicDrop.style.display === 'none') {
+    renderTopicDropdown(); topicDrop.style.display = 'block';
+  } else {
+    topicDrop.style.display = 'none';
+  }
+});
+document.addEventListener('click', () => { topicDrop.style.display = 'none'; });
+topicDrop.addEventListener('click', e => e.stopPropagation());
+
+function renderTopicDropdown() {
+  topicDrop.innerHTML = '';
+  const allItem = mk('div', 'td-item' + (!currentTopicId ? ' selected' : ''));
+  allItem.innerHTML = `<span class="td-item-name">All sources</span>`;
+  allItem.addEventListener('click', () => { setTopic(null); topicDrop.style.display='none'; });
+  topicDrop.appendChild(allItem);
+  if (topics.length) {
+    const sep = mk('div', 'td-sep'); topicDrop.appendChild(sep);
+    topics.forEach(t => {
+      const item = mk('div', 'td-item' + (currentTopicId===t.id ? ' selected' : ''));
+      item.innerHTML = `<span class="td-item-name">${esc(t.name)}</span><span class="td-item-count">${t.sources.length} src</span>`;
+      item.addEventListener('click', () => { setTopic(t.id); topicDrop.style.display='none'; });
+      topicDrop.appendChild(item);
+    });
+  }
+}
+
+function setTopic(topicId) {
+  currentTopicId = topicId;
+  if (currentSession) currentSession.topicId = topicId;
+  renderTopicChip();
+}
+
+/* ── Topics modal ── */
+const topicsModal = document.getElementById('topics-modal');
+function showTopicsModal() { loadTopicsModal(); topicsModal.classList.add('open'); }
+function hideTopicsModal() { topicsModal.classList.remove('open'); }
+document.getElementById('manage-topics-btn').addEventListener('click', showTopicsModal);
+document.getElementById('close-topics-btn').addEventListener('click', hideTopicsModal);
+
+document.getElementById('create-topic-btn').addEventListener('click', createTopic);
+document.getElementById('new-topic-name').addEventListener('keydown', e => { if (e.key==='Enter') createTopic(); });
+
+async function createTopic() {
+  const name = document.getElementById('new-topic-name').value.trim();
+  if (!name) return;
+  try {
+    const r = await fetch('/topics', {
+      method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({name}),
+    });
+    if (!r.ok) return;
+    document.getElementById('new-topic-name').value = '';
+    await fetchTopics();
+    loadTopicsModal();
+  } catch {}
+}
+
+async function loadTopicsModal() {
+  const list = document.getElementById('topics-list');
+  // fetch available sources for the add-source dropdowns
+  let availableSources = [];
+  try {
+    const r = await fetch('/sources', { headers: getHeaders() });
+    if (r.ok) availableSources = (await r.json()).map(s => s.source);
+  } catch {}
+
+  list.innerHTML = '';
+  if (!topics.length) {
+    list.innerHTML = '<p style="font-size:12px;color:var(--text-hint);padding:8px 4px;font-style:italic">No topics yet. Create one above.</p>';
+    return;
+  }
+  topics.forEach(topic => {
+    const card = mk('div', 'topic-card');
+    // header
+    const hdr = mk('div', 'tc-header');
+    const nameEl = mk('span', 'tc-name'); nameEl.textContent = topic.name;
+    const delBtn = mk('button', 'tc-del');
+    delBtn.title = 'Delete topic';
+    delBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`;
+    delBtn.addEventListener('click', async () => {
+      if (!confirm(`Delete topic "${topic.name}"?`)) return;
+      await fetch(`/topics/${topic.id}`, { method:'DELETE', headers:getHeaders() });
+      await fetchTopics(); loadTopicsModal();
+    });
+    hdr.append(nameEl, delBtn);
+    card.appendChild(hdr);
+    // sources
+    const srcWrap = mk('div', 'tc-sources');
+    if (topic.sources.length) {
+      topic.sources.forEach(src => {
+        const tag = mk('span', 'src-tag');
+        tag.innerHTML = `${esc(src)}<button class="src-tag-del" title="Remove">×</button>`;
+        tag.querySelector('.src-tag-del').addEventListener('click', async () => {
+          await fetch(`/topics/${topic.id}/sources/${encodeURIComponent(src)}`, { method:'DELETE', headers:getHeaders() });
+          await fetchTopics(); loadTopicsModal();
+        });
+        srcWrap.appendChild(tag);
+      });
+    } else {
+      const empty = mk('span', 'tc-empty'); empty.textContent = 'No sources assigned yet.';
+      srcWrap.appendChild(empty);
+    }
+    card.appendChild(srcWrap);
+    // add source row
+    const unassigned = availableSources.filter(s => !topic.sources.includes(s));
+    if (unassigned.length) {
+      const addRow = mk('div', 'tc-add-row');
+      const sel = document.createElement('select');
+      unassigned.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add';
+      addBtn.addEventListener('click', async () => {
+        await fetch(`/topics/${topic.id}/sources`, {
+          method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
+          body: JSON.stringify({source_name: sel.value}),
+        });
+        await fetchTopics(); loadTopicsModal();
+      });
+      addRow.append(sel, addBtn);
+      card.appendChild(addRow);
+    }
+    list.appendChild(card);
+  });
+}
+
 async function init() {
   setConnState('checking');
   try {
@@ -1219,6 +1548,7 @@ async function init() {
       storeUser({username: ad.username, role: ad.role});
       updateUserBar(ad.username, ad.role);
     }
+    await Promise.all([fetchSessions(), fetchTopics()]);
 
     if (!hasKeys()) showSetupModal();
   } catch { showOffline(); }
@@ -1344,10 +1674,12 @@ function updateDocBadge() {
 }
 
 /* ── New chat ── */
-document.getElementById('new-chat-btn').addEventListener('click', () => {
-  persistCurrentSession();
+document.getElementById('new-chat-btn').addEventListener('click', async () => {
+  await saveSession(currentSession);
   currentSession = newSessionObj();
   activeChatId   = currentSession.id;
+  currentTopicId = null;
+  renderTopicChip();
   renderSessions();
   clearOutput();
 });
@@ -1434,8 +1766,7 @@ async function submitQuery() {
   const userMsg = { role:'user', content:question, timestamp:new Date().toISOString() };
   currentSession.messages.push(userMsg);
   if (!currentSession.title) currentSession.title = trunc(question, 42);
-  persistCurrentSession();
-  renderSessions();
+  currentSession.topicId = currentTopicId;
 
   /* Build DOM */
   const inner  = getInner();
@@ -1470,7 +1801,7 @@ async function submitQuery() {
     const res = await fetch('/query/stream', {
       method: 'POST',
       headers: getHeaders({'Content-Type':'application/json'}),
-      body: JSON.stringify({question, top_k:topK}),
+      body: JSON.stringify({question, top_k:topK, topic_id: currentTopicId||null}),
     });
 
     if (!res.ok) {
@@ -1528,7 +1859,7 @@ async function submitQuery() {
           cursor.remove(); setPipDone(pipEls,pipWrap);
           const am = { role:'assistant', content:collAnswer, hyde:collHyde, sources:collSources, timestamp:new Date().toISOString() };
           currentSession.messages.push(am);
-          persistCurrentSession();
+          await saveSession(currentSession);
         }
       }
     }
@@ -1564,7 +1895,6 @@ function trunc(s,n)  { return s.length>n?s.slice(0,n)+'…':s; }
 /* ── Boot ── */
 currentSession = newSessionObj();
 activeChatId   = currentSession.id;
-renderSessions();
 init();
 </script>
 </body>
