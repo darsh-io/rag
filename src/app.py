@@ -122,6 +122,25 @@ def _save_topics() -> None:
     _TOPICS_PATH.write_text(json.dumps(_topics, indent=2), encoding="utf-8")
 
 
+# --- Feedback storage --------------------------------------------------------
+
+_FEEDBACK_PATH = Path(__file__).parent.parent / "config" / "feedback.json"
+
+
+def _load_feedback() -> list:
+    if _FEEDBACK_PATH.exists():
+        try:
+            return json.loads(_FEEDBACK_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+    return []
+
+
+def _save_feedback(fb: list) -> None:
+    _FEEDBACK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _FEEDBACK_PATH.write_text(json.dumps(fb, indent=2), encoding="utf-8")
+
+
 # --- Chat storage (encrypted per-user) --------------------------------------
 
 _SECRET_PATH = Path(__file__).parent.parent / "config" / ".server_secret"
@@ -193,6 +212,18 @@ class UpsertChatRequest(BaseModel):
 class IngestResponse(BaseModel):
     filename: str
     chunks_ingested: int
+
+
+class FeedbackRequest(BaseModel):
+    chat_id: str
+    chat_title: str = ""
+    topic_id: str | None = None
+    topic_name: str = ""
+    message_index: int
+    question: str
+    answer: str
+    rating: str  # "up" or "down"
+    comment: str = ""
 
 
 class QueryRequest(BaseModel):
@@ -464,6 +495,89 @@ async def delete_chat(session_id: str, payload: dict = Depends(_require_auth)):
     return {"deleted": session_id}
 
 
+# --- Feedback endpoints ------------------------------------------------------
+
+@app.post("/feedback", dependencies=[Depends(_require_auth)])
+async def submit_feedback(body: FeedbackRequest, payload: dict = Depends(_require_auth)):
+    """Store user feedback for an answer. Replaces any prior rating for the same message."""
+    if body.rating not in ("up", "down"):
+        raise HTTPException(status_code=400, detail="Rating must be 'up' or 'down'.")
+    fb = _load_feedback()
+    fb = [f for f in fb if not (
+        f["username"] == payload["sub"] and
+        f["chat_id"] == body.chat_id and
+        f["message_index"] == body.message_index
+    )]
+    fb.append({
+        "id": secrets.token_hex(8),
+        "username": payload["sub"],
+        "chat_id": body.chat_id,
+        "chat_title": body.chat_title,
+        "topic_id": body.topic_id,
+        "topic_name": body.topic_name,
+        "message_index": body.message_index,
+        "question": body.question,
+        "answer": body.answer,
+        "rating": body.rating,
+        "comment": body.comment,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    _save_feedback(fb)
+    return {"ok": True}
+
+
+# --- Admin endpoints ---------------------------------------------------------
+
+@app.get("/admin/chats")
+async def admin_list_chats(
+    username: str | None = None,
+    topic_id: str | None = None,
+    payload: dict = Depends(_require_admin),
+):
+    """List chat metadata for all users, optionally filtered by username and/or topic. Admin only."""
+    targets = [username] if username else list(_users.keys())
+    result = []
+    for u in targets:
+        for s in _load_chats(u).values():
+            if topic_id and s.get("topicId") != topic_id:
+                continue
+            result.append({
+                "username": u,
+                "id": s["id"],
+                "title": s.get("title", ""),
+                "topicId": s.get("topicId"),
+                "createdAt": s.get("createdAt", ""),
+                "messageCount": len(s.get("messages", [])),
+            })
+    return sorted(result, key=lambda s: s["createdAt"], reverse=True)
+
+
+@app.get("/admin/chats/{username}/{chat_id}")
+async def admin_get_chat(username: str, chat_id: str, payload: dict = Depends(_require_admin)):
+    """Get the full content of any user's chat session. Admin only."""
+    if username not in _users:
+        raise HTTPException(status_code=404, detail=f"User '{username}' not found.")
+    chats = _load_chats(username)
+    if chat_id not in chats:
+        raise HTTPException(status_code=404, detail="Chat not found.")
+    return chats[chat_id]
+
+
+@app.get("/admin/feedback")
+async def get_admin_feedback(
+    username: str | None = None,
+    rating: str | None = None,
+    payload: dict = Depends(_require_admin),
+):
+    """Return all feedback, optionally filtered by username or rating. Admin only."""
+    fb = _load_feedback()
+    if username:
+        fb = [f for f in fb if f["username"] == username]
+    if rating:
+        fb = [f for f in fb if f["rating"] == rating]
+    return sorted(fb, key=lambda f: f["created_at"], reverse=True)
+
+
 # --- App endpoints (protected) -----------------------------------------------
 
 @app.get("/health")
@@ -529,8 +643,12 @@ def _source_filter_for(topic_id: str | None) -> list | None:
     """Return the source list for a topic_id, or None for no filter."""
     if not topic_id or topic_id not in _topics:
         return None
-    sources = _topics[topic_id]["sources"]
-    return sources if sources else None
+    return _topics[topic_id]["sources"] or None
+
+
+def _assert_topic_has_sources(topic_id: str | None, source_filter: list | None) -> None:
+    if topic_id and topic_id in _topics and not source_filter:
+        raise HTTPException(status_code=400, detail="This topic has no sources assigned yet.")
 
 
 @app.post("/query", response_model=QueryResponse, dependencies=[Depends(_require_auth)])
@@ -543,6 +661,7 @@ async def query_endpoint(request: Request, body: QueryRequest):
         raise HTTPException(status_code=400, detail="Question must not be empty.")
 
     source_filter = _source_filter_for(body.topic_id)
+    _assert_topic_has_sources(body.topic_id, source_filter)
     try:
         answer, chunks = rag_query(
             body.question, [], request.app.state.collection,
@@ -572,6 +691,7 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
         raise HTTPException(status_code=400, detail="Question must not be empty.")
 
     source_filter = _source_filter_for(body.topic_id)
+    _assert_topic_has_sources(body.topic_id, source_filter)
     try:
         chunks, messages, hyde_doc = await asyncio.to_thread(
             build_rag_context,

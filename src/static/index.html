@@ -143,94 +143,6 @@ body::before {
 .si-time { font-size: 10px; color: var(--text-hint); }
 .no-sessions { padding: 18px 8px; text-align: center; font-size: 12px; color: var(--text-hint); line-height: 1.7; }
 
-/* Docs panel */
-.sb-docs {
-  border-top: 1px solid var(--border-faint);
-  flex-shrink: 0; max-height: 50px; overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-.sb-docs.open { max-height: 360px; }
-
-.docs-toggle {
-  display: flex; align-items: center; gap: 8px;
-  width: 100%; padding: 13px 14px;
-  background: transparent; border: none; font-family: inherit;
-  font-size: 11.5px; font-weight: 500; color: var(--text-secondary);
-  cursor: pointer; text-align: left; transition: color 0.12s;
-}
-.docs-toggle:hover { color: var(--text-primary); }
-.docs-toggle svg { width: 12px; height: 12px; flex-shrink: 0; }
-.docs-toggle .chev { margin-left: auto; color: var(--text-muted); transition: transform 0.25s; }
-.sb-docs.open .docs-toggle .chev { transform: rotate(180deg); }
-.doc-badge {
-  font-size: 10px; font-weight: 600;
-  background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.24);
-  color: var(--accent-light); border-radius: 99px; padding: 1px 6px;
-}
-
-.docs-body {
-  padding: 0 12px 12px;
-  display: flex; flex-direction: column; gap: 7px;
-  overflow-y: auto; max-height: 300px;
-}
-
-#dropzone {
-  position: relative;
-  border: 1.5px dashed var(--border-soft); border-radius: var(--r-md);
-  padding: 18px 12px 14px; text-align: center; cursor: pointer;
-  overflow: hidden; transition: border-color 0.2s, background 0.2s; user-select: none;
-}
-#dropzone::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(59,130,246,0.1) 0%, transparent 70%);
-  opacity: 0; transition: opacity 0.25s;
-}
-#dropzone:hover, #dropzone.over { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.04); }
-#dropzone:hover::before, #dropzone.over::before { opacity: 1; }
-
-.dz-icon {
-  width: 30px; height: 30px; margin: 0 auto 7px;
-  border-radius: var(--r-sm); background: var(--bg-overlay); border: 1px solid var(--border-soft);
-  display: flex; align-items: center; justify-content: center;
-}
-.dz-icon svg { width: 14px; height: 14px; color: var(--text-muted); }
-.dz-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 2px; }
-.dz-sub   { font-size: 10.5px; color: var(--text-muted); }
-
-#ingest-status {
-  display: none; font-size: 11.5px;
-  padding: 7px 10px; border-radius: var(--r-sm); border: 1px solid transparent; line-height: 1.5;
-}
-#ingest-status.loading { color: var(--text-secondary); background: var(--bg-overlay); border-color: var(--border-faint); }
-#ingest-status.success { color: var(--green); background: var(--green-bg); border-color: var(--green-border); }
-#ingest-status.error   { color: var(--red);   background: var(--red-bg);   border-color: var(--red-border); }
-
-#file-list { display: flex; flex-direction: column; gap: 4px; }
-.file-pill {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 9px; background: var(--bg-overlay);
-  border: 1px solid var(--border-faint); border-radius: var(--r-sm); overflow: hidden;
-}
-.fp-icon {
-  width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0;
-  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
-  display: flex; align-items: center; justify-content: center;
-}
-.fp-icon svg { width: 12px; height: 12px; color: var(--accent-light); }
-.fp-info { min-width: 0; flex: 1; }
-.fp-name { font-size: 11px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fp-meta { font-size: 10px; color: var(--text-muted); }
-.fp-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; box-shadow: 0 0 5px rgba(52,211,153,0.5); }
-.fp-del  {
-  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
-  background: transparent; border: none; cursor: pointer;
-  color: var(--text-muted); display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
-}
-.file-pill:hover .fp-del { opacity: 1; }
-.fp-del:hover { background: var(--red-bg); color: var(--red); }
-.fp-del svg { width: 11px; height: 11px; }
-
 /* Sidebar footer */
 .sb-footer {
   padding: 10px 14px; border-top: 1px solid var(--border-faint);
@@ -718,6 +630,104 @@ body::before {
   transition: border-color 0.15s; flex-shrink: 0;
 }
 .role-select:focus { border-color: rgba(59,130,246,0.4); }
+
+/* ── Feedback bar ── */
+.feedback-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-faint);
+}
+.fb-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: var(--r-xs);
+  border: 1px solid var(--border-faint); background: transparent;
+  color: var(--text-muted); cursor: pointer; font-size: 12px;
+  font-family: inherit; transition: all 0.14s;
+}
+.fb-btn:hover { border-color: var(--border-soft); color: var(--text-secondary); }
+.fb-btn.up.active  { border-color: var(--green-border); background: var(--green-bg);  color: var(--green); }
+.fb-btn.down.active{ border-color: var(--red-border);   background: var(--red-bg);    color: var(--red); }
+.fb-sep { color: var(--border-soft); }
+.fb-comment-row { display: none; width: 100%; align-items: center; gap: 6px; margin-top: 4px; }
+.fb-comment-row.visible { display: flex; }
+.fb-comment-input {
+  flex: 1; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-xs); padding: 5px 9px; color: var(--text-primary);
+  font-family: inherit; font-size: 12px; outline: none;
+  transition: border-color 0.14s;
+}
+.fb-comment-input:focus { border-color: rgba(59,130,246,0.4); }
+.fb-submit {
+  padding: 5px 12px; background: var(--accent); border: none; border-radius: var(--r-xs);
+  color: #fff; cursor: pointer; font-size: 12px; font-family: inherit;
+  transition: opacity 0.14s; flex-shrink: 0;
+}
+.fb-submit:hover { opacity: 0.88; }
+.fb-status { font-size: 11px; color: var(--text-muted); }
+
+/* ── Admin filter row ── */
+.admin-filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.admin-filter-row select {
+  flex: 1; min-width: 120px; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 8px 10px; color: var(--text-primary);
+  font-family: inherit; font-size: 12px; outline: none; cursor: pointer;
+  transition: border-color 0.14s;
+}
+.admin-filter-row select:focus { border-color: rgba(59,130,246,0.4); }
+.admin-filter-row button {
+  padding: 8px 16px; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); color: var(--text-secondary); font-family: inherit;
+  font-size: 12px; cursor: pointer; transition: all 0.14s; flex-shrink: 0;
+}
+.admin-filter-row button:hover { border-color: var(--border-mid); color: var(--text-primary); }
+.admin-list { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; }
+.admin-empty { font-size: 12px; color: var(--text-hint); padding: 12px 4px; font-style: italic; }
+
+/* Admin chat cards */
+.admin-chat-card {
+  padding: 10px 12px; background: var(--bg-overlay);
+  border: 1px solid var(--border-faint); border-radius: var(--r-sm);
+  cursor: pointer; transition: border-color 0.13s, background 0.13s;
+}
+.admin-chat-card:hover { border-color: var(--border-soft); background: var(--bg-raised); }
+.acc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.acc-title { font-size: 12.5px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.acc-user-tag { font-size: 10.5px; color: var(--accent-light); background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 99px; padding: 1px 7px; flex-shrink: 0; }
+.acc-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 10px; }
+
+/* Admin feedback entries */
+.fb-entry {
+  padding: 11px 13px; background: var(--bg-overlay);
+  border: 1px solid var(--border-faint); border-radius: var(--r-sm);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.fbe-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.fbe-user { font-size: 11px; color: var(--accent-light); background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.15); border-radius: 99px; padding: 1px 7px; }
+.fbe-topic { font-size: 11px; color: var(--text-muted); }
+.fbe-rating { font-size: 11px; padding: 1px 8px; border-radius: 99px; font-weight: 500; }
+.fbe-rating.up   { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); }
+.fbe-rating.down { color: var(--red);   background: var(--red-bg);   border: 1px solid var(--red-border); }
+.fbe-date { font-size: 10.5px; color: var(--text-hint); margin-left: auto; }
+.fbe-q { font-size: 12px; color: var(--text-secondary); font-style: italic; }
+.fbe-a { font-size: 12px; color: var(--text-muted); white-space: pre-wrap; }
+.fbe-comment { font-size: 12px; color: var(--text-primary); padding: 5px 8px; background: var(--bg-raised); border-radius: var(--r-xs); border-left: 2px solid var(--accent); }
+
+/* Admin chat viewer back button */
+.admin-back-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px; margin-bottom: 10px;
+  background: transparent; border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); color: var(--text-secondary);
+  font-family: inherit; font-size: 12px; cursor: pointer;
+  transition: all 0.13s;
+}
+.admin-back-btn:hover { border-color: var(--border-mid); color: var(--text-primary); }
+.admin-chat-view { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.acv-pair { display: flex; flex-direction: column; gap: 6px; }
+.acv-q { font-size: 12.5px; color: var(--text-primary); font-weight: 500; padding: 7px 10px; background: var(--bg-raised); border-radius: var(--r-sm); }
+.acv-a { font-size: 12px; color: var(--text-secondary); padding: 7px 10px; border-left: 2px solid var(--border-soft); white-space: pre-wrap; }
+.acv-fb { font-size: 11px; padding: 2px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px; }
+.acv-fb.up   { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); }
+.acv-fb.down { color: var(--red);   background: var(--red-bg);   border: 1px solid var(--red-border); }
 </style>
 </head>
 <body>
@@ -749,34 +759,6 @@ body::before {
       <div class="no-sessions" id="no-sessions">No chats yet.<br>Ask a question to start.</div>
     </div>
 
-    <div class="sb-docs" id="sb-docs">
-      <button class="docs-toggle" id="docs-toggle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-        <span>Documents</span>
-        <span class="doc-badge" id="doc-badge" style="display:none">0</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="18 15 12 9 6 15"/>
-        </svg>
-      </button>
-      <div class="docs-body">
-        <div id="dropzone">
-          <div class="dz-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
-              <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
-            </svg>
-          </div>
-          <p class="dz-title">Drop file to ingest</p>
-          <p class="dz-sub">or click to browse</p>
-        </div>
-        <input type="file" id="file-input" accept=".pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf,.toml,.yaml,.yml,.json,.xml,.csv,.html,.htm,.docx,.xlsx,.xls,.pptx,.ppt,.epub,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp" hidden>
-        <div id="ingest-status"></div>
-        <div id="file-list"></div>
-      </div>
-    </div>
-
     <div class="sb-user" id="sb-user" style="display:none">
       <div class="user-avatar" id="user-avatar">?</div>
       <div class="user-info">
@@ -794,6 +776,18 @@ body::before {
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="browse-chats-btn" title="Browse all chats" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="view-feedback-btn" title="View user feedback" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
           </svg>
         </button>
         <button class="icon-btn" id="signout-btn" title="Sign out">
@@ -967,6 +961,54 @@ body::before {
   </div>
 </div>
 
+<!-- Admin Chat Browser modal -->
+<div id="admin-chats-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-icon-box">💬</div>
+      <div>
+        <p class="modal-title">Browse Chats</p>
+        <p class="modal-sub">View all users' chat histories. Filter by user or topic.</p>
+      </div>
+    </div>
+    <div class="admin-filter-row">
+      <select id="ac-user-filter"><option value="">All users</option></select>
+      <select id="ac-topic-filter"><option value="">All topics</option></select>
+      <button id="ac-filter-btn">Filter</button>
+    </div>
+    <div id="ac-body" class="admin-list"></div>
+    <div class="modal-footer">
+      <span class="modal-skip" id="close-admin-chats-btn">Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Feedback modal -->
+<div id="admin-feedback-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-icon-box">📊</div>
+      <div>
+        <p class="modal-title">User Feedback</p>
+        <p class="modal-sub">Review ratings and comments left by users on answers.</p>
+      </div>
+    </div>
+    <div class="admin-filter-row">
+      <select id="af-user-filter"><option value="">All users</option></select>
+      <select id="af-rating-filter">
+        <option value="">All ratings</option>
+        <option value="up">👍 Positive</option>
+        <option value="down">👎 Negative</option>
+      </select>
+      <button id="af-filter-btn">Filter</button>
+    </div>
+    <div id="af-body" class="admin-list"></div>
+    <div class="modal-footer">
+      <span class="modal-skip" id="close-admin-feedback-btn">Close</span>
+    </div>
+  </div>
+</div>
+
 <!-- API key modal -->
 <div id="setup-modal" class="modal-overlay">
   <div class="modal-card">
@@ -1035,15 +1077,8 @@ function getHeaders(extra={}) {
   return h;
 }
 
-/* ── Session storage (server-side, per-user encrypted) ── */
-const LS_FILES = 'rag_ingested_files';
-function loadFiles()   { try { return JSON.parse(localStorage.getItem(LS_FILES))||[]; } catch { return []; } }
-function storeFiles(f) { localStorage.setItem(LS_FILES, JSON.stringify(f)); }
-
 let currentSession = null;
 let activeChatId   = null;
-let fileRecords    = loadFiles();
-let fileCount      = fileRecords.length;
 let sessions       = [];   // metadata cache from GET /chats
 let topics         = [];   // from GET /topics
 
@@ -1191,6 +1226,7 @@ function renderHistory(session) {
       const at = mk('div', 'answer-text');
       at.textContent = am.content;
       aw.appendChild(at); block.appendChild(aw);
+      appendFeedbackBar(block, i + 1, um.content, am.content, am.feedback || null);
     }
     inner.appendChild(block);
   }
@@ -1250,8 +1286,10 @@ function updateUserBar(username, role) {
   const badge = document.getElementById('role-badge');
   badge.textContent = role;
   badge.className = 'role-badge ' + (role === 'admin' ? 'admin' : 'user');
-  document.getElementById('manage-users-btn').style.display  = role === 'admin' ? 'flex' : 'none';
-  document.getElementById('manage-topics-btn').style.display = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('manage-users-btn').style.display   = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('manage-topics-btn').style.display  = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('browse-chats-btn').style.display   = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('view-feedback-btn').style.display  = role === 'admin' ? 'flex' : 'none';
 }
 
 document.getElementById('signout-btn').addEventListener('click', () => {
@@ -1299,6 +1337,7 @@ async function doLogin() {
     storeUser({username: data.username, role: data.role});
     hideLoginModal();
     updateUserBar(data.username, data.role);
+    await Promise.all([fetchSessions(), fetchTopics()]);
     if (!hasKeys()) showSetupModal();
   } catch {
     err.textContent = 'Cannot reach server — is it running?';
@@ -1513,13 +1552,13 @@ async function loadTopicsModal() {
       srcWrap.appendChild(empty);
     }
     card.appendChild(srcWrap);
-    // add source row
+    // add existing source row
     const unassigned = availableSources.filter(s => !topic.sources.includes(s));
     if (unassigned.length) {
       const addRow = mk('div', 'tc-add-row');
       const sel = document.createElement('select');
       unassigned.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
-      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add';
+      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add existing';
       addBtn.addEventListener('click', async () => {
         await fetch(`/topics/${topic.id}/sources`, {
           method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
@@ -1530,8 +1569,40 @@ async function loadTopicsModal() {
       addRow.append(sel, addBtn);
       card.appendChild(addRow);
     }
+    // upload new file row
+    const uploadRow = mk('div', 'tc-add-row');
+    const uploadInput = document.createElement('input');
+    uploadInput.type = 'file';
+    uploadInput.accept = '.pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf,.toml,.yaml,.yml,.json,.xml,.csv,.html,.htm,.docx,.xlsx,.xls,.pptx,.ppt,.epub,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp';
+    uploadInput.style.cssText = 'flex:1;font-size:11px;color:var(--text-secondary);background:var(--bg-overlay);border:1px solid var(--border-soft);border-radius:var(--r-xs);padding:4px 6px;cursor:pointer;';
+    const uploadStatus = mk('span', ''); uploadStatus.style.cssText = 'font-size:11px;color:var(--text-secondary);';
+    uploadInput.addEventListener('change', async () => {
+      if (!uploadInput.files[0]) return;
+      uploadStatus.textContent = 'Uploading…';
+      await ingestAndAssign(uploadInput.files[0], topic.id, uploadStatus);
+      uploadInput.value = '';
+    });
+    uploadRow.append(uploadInput, uploadStatus);
+    card.appendChild(uploadRow);
     list.appendChild(card);
   });
+}
+
+async function ingestAndAssign(file, topicId, statusEl) {
+  if (!hasKeys()) { showSetupModal(); return; }
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const res = await fetch('/ingest', { method:'POST', headers:getHeaders(), body:form });
+    if (!res.ok) { statusEl.textContent = await friendlyError(res); return; }
+    const data = await res.json();
+    await fetch(`/topics/${topicId}/sources`, {
+      method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({source_name: data.filename}),
+    });
+    statusEl.textContent = `✓ ${data.chunks_ingested} chunks`;
+    await fetchTopics(); loadTopicsModal();
+  } catch { statusEl.textContent = 'Upload failed.'; }
 }
 
 async function init() {
@@ -1576,102 +1647,6 @@ document.getElementById('topk-dec').addEventListener('click', () => {
 document.getElementById('topk-inc').addEventListener('click', () => {
   if (topK<20) { topK++; topkVal.textContent=topK; localStorage.setItem('rag_topk',topK); }
 });
-
-/* ── Docs panel ── */
-const sbDocs = document.getElementById('sb-docs');
-document.getElementById('docs-toggle').addEventListener('click', () => sbDocs.classList.toggle('open'));
-if (fileRecords.length > 0) sbDocs.classList.add('open');
-
-/* ── Drop zone ── */
-const dropzone     = document.getElementById('dropzone');
-const fileInput    = document.getElementById('file-input');
-const ingestStatus = document.getElementById('ingest-status');
-const fileListEl   = document.getElementById('file-list');
-const docBadge     = document.getElementById('doc-badge');
-
-// restore persisted file pills
-fileRecords.forEach(f => addFilePill(f.name, f.chunks, false));
-updateDocBadge();
-
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault(); dropzone.classList.remove('over');
-  if (e.dataTransfer.files[0]) ingestFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) ingestFile(fileInput.files[0]);
-  fileInput.value = '';
-});
-
-async function ingestFile(file) {
-  if (!hasKeys()) { showSetupModal(); return; }
-  sbDocs.classList.add('open');
-  setStatus(`Ingesting "${trunc(file.name,24)}"…`, 'loading');
-  const form = new FormData();
-  form.append('file', file);
-  try {
-    const res = await fetch('/ingest', { method:'POST', headers:getHeaders(), body:form });
-    if (!res.ok) { setStatus(await friendlyError(res), 'error'); return; }
-    const data = await res.json();
-    setStatus(`✓ ${data.chunks_ingested} chunks indexed`, 'success');
-    addFilePill(data.filename, data.chunks_ingested, true);
-    fileRecords = fileRecords.filter(f => f.name !== data.filename);
-    fileRecords.unshift({ name:data.filename, chunks:data.chunks_ingested, timestamp:new Date().toISOString() });
-    storeFiles(fileRecords);
-    fileCount = fileRecords.length;
-    updateDocBadge();
-  } catch { setStatus('Cannot reach server — is it running?','error'); }
-}
-
-function setStatus(msg, type) {
-  ingestStatus.textContent = msg;
-  ingestStatus.className   = type;
-  ingestStatus.style.display = 'block';
-}
-
-function addFilePill(name, chunks, animate) {
-  const el = mk('div','file-pill');
-  if (animate) el.style.animation = 'blockIn 0.3s cubic-bezier(0.16,1,0.3,1) both';
-  el.innerHTML = `
-    <div class="fp-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-      </svg>
-    </div>
-    <div class="fp-info">
-      <div class="fp-name" title="${esc(name)}">${esc(name)}</div>
-      <div class="fp-meta">${chunks} chunks</div>
-    </div>
-    <div class="fp-dot"></div>
-    <button class="fp-del" title="Remove document" aria-label="Remove">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>`;
-  el.querySelector('.fp-del').addEventListener('click', async (e) => {
-    e.stopPropagation();
-    await deleteDocument(name, el);
-  });
-  fileListEl.prepend(el);
-}
-
-async function deleteDocument(name, pillEl) {
-  try {
-    await fetch(`/documents/${encodeURIComponent(name)}`, { method: 'DELETE', headers: getHeaders() });
-  } catch { /* server may be down; still remove locally */ }
-  pillEl.remove();
-  fileRecords = fileRecords.filter(f => f.name !== name);
-  storeFiles(fileRecords);
-  fileCount = fileRecords.length;
-  updateDocBadge();
-}
-
-function updateDocBadge() {
-  if (fileCount>0) { docBadge.textContent=fileCount; docBadge.style.display='inline-block'; }
-  else docBadge.style.display='none';
-}
 
 /* ── New chat ── */
 document.getElementById('new-chat-btn').addEventListener('click', async () => {
@@ -1859,7 +1834,9 @@ async function submitQuery() {
           cursor.remove(); setPipDone(pipEls,pipWrap);
           const am = { role:'assistant', content:collAnswer, hyde:collHyde, sources:collSources, timestamp:new Date().toISOString() };
           currentSession.messages.push(am);
+          const asmIdx = currentSession.messages.length - 1;
           await saveSession(currentSession);
+          appendFeedbackBar(block, asmIdx, question, collAnswer, null);
         }
       }
     }
@@ -1891,6 +1868,218 @@ function mk(tag,cls) { const e=document.createElement(tag); if(cls) e.className=
 function lbl(text)   { const e=mk('p','blk-label'); e.textContent=text; return e; }
 function esc(s)      { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function trunc(s,n)  { return s.length>n?s.slice(0,n)+'…':s; }
+
+/* ── Feedback bar ── */
+function appendFeedbackBar(block, msgIdx, question, answer, existing) {
+  const bar = mk('div', 'feedback-bar');
+  const upBtn   = mk('button', 'fb-btn up');   upBtn.innerHTML   = '👍 Helpful';
+  const downBtn = mk('button', 'fb-btn down'); downBtn.innerHTML = '👎 Not helpful';
+  const statusEl = mk('span', 'fb-status');
+
+  const commentRow = mk('div', 'fb-comment-row');
+  const commentIn  = mk('input', 'fb-comment-input');
+  commentIn.placeholder = 'Optional comment…';
+  commentIn.type = 'text';
+  const submitBtn = mk('button', 'fb-submit'); submitBtn.textContent = 'Submit';
+  commentRow.append(commentIn, submitBtn);
+
+  let pendingRating = null;
+
+  if (existing) {
+    if (existing.rating === 'up')   upBtn.classList.add('active');
+    if (existing.rating === 'down') downBtn.classList.add('active');
+    if (existing.comment) { statusEl.textContent = `"${trunc(existing.comment, 60)}"` }
+  }
+
+  function selectRating(r) {
+    pendingRating = r;
+    upBtn.classList.toggle('active', r === 'up');
+    downBtn.classList.toggle('active', r === 'down');
+    commentRow.classList.add('visible');
+    commentIn.focus();
+  }
+
+  upBtn.addEventListener('click',   () => selectRating('up'));
+  downBtn.addEventListener('click', () => selectRating('down'));
+
+  submitBtn.addEventListener('click', async () => {
+    if (!pendingRating) return;
+    const comment = commentIn.value.trim();
+    submitBtn.disabled = true;
+    statusEl.textContent = 'Saving…';
+    const topicId = currentSession.topicId || null;
+    const topicName = topicId ? (topics.find(t => t.id === topicId)?.name || '') : '';
+    try {
+      const res = await fetch('/feedback', {
+        method: 'POST',
+        headers: getHeaders({'Content-Type':'application/json'}),
+        body: JSON.stringify({
+          chat_id: activeChatId, chat_title: currentSession.title || '',
+          topic_id: topicId, topic_name: topicName,
+          message_index: msgIdx, question, answer,
+          rating: pendingRating, comment,
+        }),
+      });
+      if (!res.ok) { statusEl.textContent = 'Failed to save.'; submitBtn.disabled = false; return; }
+      // persist in the session message
+      if (currentSession.messages[msgIdx]) {
+        currentSession.messages[msgIdx].feedback = { rating: pendingRating, comment };
+        await saveSession(currentSession);
+      }
+      commentRow.classList.remove('visible');
+      statusEl.textContent = pendingRating === 'up' ? 'Marked helpful' : 'Marked unhelpful';
+    } catch { statusEl.textContent = 'Network error.'; submitBtn.disabled = false; }
+  });
+
+  bar.append(upBtn, downBtn, statusEl, commentRow);
+  block.appendChild(bar);
+}
+
+/* ── Admin Chat Browser ── */
+const adminChatsModal    = document.getElementById('admin-chats-modal');
+const adminFeedbackModal = document.getElementById('admin-feedback-modal');
+
+document.getElementById('browse-chats-btn').addEventListener('click', () => showAdminChatsModal());
+document.getElementById('close-admin-chats-btn').addEventListener('click', () => adminChatsModal.classList.remove('open'));
+document.getElementById('view-feedback-btn').addEventListener('click', () => showAdminFeedbackModal());
+document.getElementById('close-admin-feedback-btn').addEventListener('click', () => adminFeedbackModal.classList.remove('open'));
+document.getElementById('ac-filter-btn').addEventListener('click', () => loadAdminChats());
+document.getElementById('af-filter-btn').addEventListener('click', () => loadAdminFeedback());
+
+async function showAdminChatsModal() {
+  adminChatsModal.classList.add('open');
+  // populate user filter
+  const uSel = document.getElementById('ac-user-filter');
+  uSel.innerHTML = '<option value="">All users</option>';
+  try {
+    const r = await fetch('/auth/users', { headers: getHeaders() });
+    if (r.ok) (await r.json()).forEach(u => {
+      const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o);
+    });
+  } catch {}
+  // populate topic filter
+  const tSel = document.getElementById('ac-topic-filter');
+  tSel.innerHTML = '<option value="">All topics</option>';
+  topics.forEach(t => {
+    const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; tSel.appendChild(o);
+  });
+  await loadAdminChats();
+}
+
+async function loadAdminChats() {
+  const body = document.getElementById('ac-body');
+  body.innerHTML = '<p class="admin-empty">Loading…</p>';
+  const username = document.getElementById('ac-user-filter').value;
+  const topicId  = document.getElementById('ac-topic-filter').value;
+  const qs = new URLSearchParams();
+  if (username) qs.set('username', username);
+  if (topicId)  qs.set('topic_id', topicId);
+  try {
+    const r = await fetch(`/admin/chats?${qs}`, { headers: getHeaders() });
+    if (!r.ok) { body.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
+    const chats = await r.json();
+    body.innerHTML = '';
+    if (!chats.length) { body.innerHTML = '<p class="admin-empty">No chats found.</p>'; return; }
+    chats.forEach(c => {
+      const card = mk('div', 'admin-chat-card');
+      const topicLabel = c.topicId ? (topics.find(t => t.id === c.topicId)?.name || c.topicId) : 'All sources';
+      card.innerHTML = `
+        <div class="acc-header">
+          <span class="acc-title">${esc(c.title || 'Untitled')}</span>
+          <span class="acc-user-tag">${esc(c.username)}</span>
+        </div>
+        <div class="acc-meta">
+          <span>${c.messageCount} messages</span>
+          <span>${topicLabel}</span>
+          <span>${new Date(c.createdAt).toLocaleDateString()}</span>
+        </div>`;
+      card.addEventListener('click', () => viewAdminChat(c.username, c.id, c.title));
+      body.appendChild(card);
+    });
+  } catch { body.innerHTML = '<p class="admin-empty">Error loading chats.</p>'; }
+}
+
+async function viewAdminChat(username, chatId, title) {
+  const body = document.getElementById('ac-body');
+  body.innerHTML = '';
+  const backBtn = mk('button', 'admin-back-btn');
+  backBtn.innerHTML = `← Back to list`;
+  backBtn.addEventListener('click', loadAdminChats);
+  const heading = mk('p', 'blk-label');
+  heading.textContent = `${username}: ${title || 'Untitled'}`;
+  body.append(backBtn, heading);
+
+  try {
+    const r = await fetch(`/admin/chats/${encodeURIComponent(username)}/${chatId}`, { headers: getHeaders() });
+    if (!r.ok) { body.appendChild(Object.assign(mk('p','admin-empty'), {textContent:'Failed to load chat.'})); return; }
+    const chat = await r.json();
+    const view = mk('div', 'admin-chat-view');
+    const msgs = chat.messages || [];
+    for (let i = 0; i < msgs.length; i += 2) {
+      const um = msgs[i]; const am = msgs[i+1];
+      if (!um) continue;
+      const pair = mk('div', 'acv-pair');
+      const qEl = mk('div', 'acv-q'); qEl.textContent = um.content; pair.appendChild(qEl);
+      if (am) {
+        const aEl = mk('div', 'acv-a'); aEl.textContent = am.content; pair.appendChild(aEl);
+        if (am.feedback) {
+          const fb = mk('span', `acv-fb ${am.feedback.rating}`);
+          fb.textContent = am.feedback.rating === 'up' ? '👍 Helpful' : '👎 Not helpful';
+          if (am.feedback.comment) fb.textContent += ` — "${am.feedback.comment}"`;
+          pair.appendChild(fb);
+        }
+      }
+      view.appendChild(pair);
+    }
+    body.appendChild(view);
+  } catch { body.appendChild(Object.assign(mk('p','admin-empty'), {textContent:'Error loading chat.'})); }
+}
+
+/* ── Admin Feedback Viewer ── */
+async function showAdminFeedbackModal() {
+  adminFeedbackModal.classList.add('open');
+  const uSel = document.getElementById('af-user-filter');
+  uSel.innerHTML = '<option value="">All users</option>';
+  try {
+    const r = await fetch('/auth/users', { headers: getHeaders() });
+    if (r.ok) (await r.json()).forEach(u => {
+      const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o);
+    });
+  } catch {}
+  await loadAdminFeedback();
+}
+
+async function loadAdminFeedback() {
+  const body = document.getElementById('af-body');
+  body.innerHTML = '<p class="admin-empty">Loading…</p>';
+  const username = document.getElementById('af-user-filter').value;
+  const rating   = document.getElementById('af-rating-filter').value;
+  const qs = new URLSearchParams();
+  if (username) qs.set('username', username);
+  if (rating)   qs.set('rating', rating);
+  try {
+    const r = await fetch(`/admin/feedback?${qs}`, { headers: getHeaders() });
+    if (!r.ok) { body.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
+    const fb = await r.json();
+    body.innerHTML = '';
+    if (!fb.length) { body.innerHTML = '<p class="admin-empty">No feedback yet.</p>'; return; }
+    fb.forEach(f => {
+      const el = mk('div', 'fb-entry');
+      const ratingLbl = f.rating === 'up' ? '👍 Helpful' : '👎 Not helpful';
+      el.innerHTML = `
+        <div class="fbe-head">
+          <span class="fbe-user">${esc(f.username)}</span>
+          <span class="fbe-rating ${f.rating}">${ratingLbl}</span>
+          ${f.topic_name ? `<span class="fbe-topic">${esc(f.topic_name)}</span>` : ''}
+          <span class="fbe-date">${new Date(f.created_at).toLocaleString()}</span>
+        </div>
+        <div class="fbe-q">"${esc(trunc(f.question, 120))}"</div>
+        <div class="fbe-a">${esc(trunc(f.answer, 200))}</div>
+        ${f.comment ? `<div class="fbe-comment">${esc(f.comment)}</div>` : ''}`;
+      body.appendChild(el);
+    });
+  } catch { body.innerHTML = '<p class="admin-empty">Error loading feedback.</p>'; }
+}
 
 /* ── Boot ── */
 currentSession = newSessionObj();
