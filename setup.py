@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RAGged setup wizard.
+rewise setup wizard.
 Run once: python setup.py
 """
 import os
@@ -48,7 +48,7 @@ def main():
     clear()
     print()
     print("  ╔══════════════════════════════════════╗")
-    print("  ║          RAGged  —  Setup            ║")
+    print("  ║          rewise  —  Setup            ║")
     print("  ╚══════════════════════════════════════╝")
     print()
     print("  This will get you running in 3 steps.")
@@ -164,7 +164,7 @@ def main():
 
     print()
     hr()
-    print("  All done. Enjoy RAGged!")
+    print("  All done. Enjoy rewise!")
     hr()
     print()
 

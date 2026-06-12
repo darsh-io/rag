@@ -1,4 +1,4 @@
-# RAGged
+# rewise
 
 > Your documents, finally worth talking to.
 
@@ -10,9 +10,9 @@ Built with a real problem in mind: give teachers a way to turn their class mater
 
 ## What It Does
 
-Imagine your entire course reader could answer questions. You ask *"what causes inflation?"* and instead of flipping through 300 pages, it reads everything in seconds, finds the most relevant passages, and replies with a clear answer that tells you exactly which document and page it came from. That's RAGged — for any subject, any file format, any student, at any hour.
+Imagine your entire course reader could answer questions. You ask *"what causes inflation?"* and instead of flipping through 300 pages, it reads everything in seconds, finds the most relevant passages, and replies with a clear answer that tells you exactly which document and page it came from. That's rewise — for any subject, any file format, any student, at any hour.
 
-The magic is in what happens between your question and the answer. Most AI tools either hallucinate from memory or do a single keyword search. RAGged does neither. It runs your question through a five-stage retrieval pipeline that combines semantic search, keyword matching, ranked fusion, and a dedicated reranking model — before the LLM ever sees a single word.
+The magic is in what happens between your question and the answer. Most AI tools either hallucinate from memory or do a single keyword search. rewise does neither. It runs your question through a five-stage retrieval pipeline that combines semantic search, keyword matching, ranked fusion, and a dedicated reranking model — before the LLM ever sees a single word.
 
 ---
 
@@ -69,7 +69,7 @@ The magic is in what happens between your question and the answer. Most AI tools
 
 LangChain and LlamaIndex abstract away the parts that matter most when you're trying to understand or control RAG behavior. When retrieval fails silently, you need to know whether the embeddings are wrong, the chunker is too aggressive, BM25 isn't tuned, or the reranker is penalizing good results. That diagnosis is impossible when the pipeline is a black box.
 
-RAGged builds every piece explicitly:
+rewise builds every piece explicitly:
 
 | Component | Why it matters |
 |-----------|---------------|
@@ -192,7 +192,7 @@ Images are processed by a vision model that produces a textual description befor
 **Requirements:** Python 3.10+, an [OpenRouter](https://openrouter.ai) API key, a [Cohere](https://cohere.com) API key.
 
 ```bash
-git clone https://github.com/darsh-io/rag.git
+git clone https://github.com/darsh-io/rewise.git
 cd rag
 pip install -r requirements.txt
 cp .env.example .env
@@ -250,7 +250,7 @@ Any OpenRouter-compatible model slug works for embeddings and LLM.
 
 The problem this is solving: students get a folder of PDFs at the start of term and are expected to learn from static files. When they have a question at 11 PM before an exam, there's no one to ask.
 
-RAGged replaces that with a curated, context-aware study assistant — where a teacher defines the knowledge base, and students get an AI that only knows what the teacher put in. Not random internet hallucinations. Not a generic chatbot. Just your syllabus, accurately recalled, with sources.
+rewise replaces that with a curated, context-aware study assistant — where a teacher defines the knowledge base, and students get an AI that only knows what the teacher put in. Not random internet hallucinations. Not a generic chatbot. Just your syllabus, accurately recalled, with sources.
 
 When students consistently ask the same question and mark its answer as unhelpful, the teacher sees it in the feedback dashboard — and knows exactly which concept needs a better explanation.
 

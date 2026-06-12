@@ -159,7 +159,7 @@ def _load_or_create_secret() -> bytes:
 
 def _fernet(username: str) -> Fernet:
     """Derive a stable per-user Fernet key from the server secret via HKDF."""
-    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=username.encode(), info=b"ragged-chat")
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=username.encode(), info=b"rewise-chat")
     return Fernet(base64.urlsafe_b64encode(hkdf.derive(_server_secret)))
 
 
@@ -317,7 +317,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="RAGged", lifespan=lifespan)
+app = FastAPI(title="rewise", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
