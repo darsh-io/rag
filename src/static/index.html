@@ -758,6 +758,52 @@ body::before {
 .acv-fb { font-size: 11px; padding: 2px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px; }
 .acv-fb.up   { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); }
 .acv-fb.down { color: var(--red);   background: var(--red-bg);   border: 1px solid var(--red-border); }
+.admin-chat-view { max-height:none; overflow:visible; }
+
+/* ── Admin panels (full-area replacement for chat) ── */
+#chat-view   { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+#admin-panel { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.panel-hdr { padding:16px 32px 12px; border-bottom:1px solid var(--border-faint); display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.panel-back-btn { display:flex; align-items:center; gap:5px; background:transparent; border:1px solid var(--border-soft); border-radius:var(--r-sm); padding:5px 11px; color:var(--text-secondary); font-family:inherit; font-size:12px; cursor:pointer; flex-shrink:0; transition:all 0.13s; }
+.panel-back-btn:hover { border-color:var(--border-mid); color:var(--text-primary); }
+.panel-back-btn svg { width:12px; height:12px; }
+.panel-title { font-size:15px; font-weight:600; letter-spacing:-0.025em; flex:1; }
+.panel-body  { flex:1; overflow-y:auto; padding:28px 36px; }
+
+/* Topics panel */
+.tp-create-row { display:flex; gap:8px; margin-bottom:24px; }
+.tp-create-row input { flex:1; background:var(--bg-overlay); border:1px solid var(--border-soft); border-radius:var(--r-sm); padding:10px 14px; color:var(--text-primary); font-family:inherit; font-size:13px; outline:none; transition:border-color 0.15s; }
+.tp-create-row input:focus { border-color:rgba(59,130,246,0.4); box-shadow:0 0 0 3px rgba(59,130,246,0.08); }
+.tp-create-row button { background:linear-gradient(135deg,var(--accent-deep),var(--accent)); color:#fff; border:none; border-radius:var(--r-sm); padding:10px 18px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; transition:opacity 0.15s; }
+.tp-create-row button:hover { opacity:0.88; }
+.tp-cards { display:flex; flex-direction:column; gap:14px; }
+.tp-card { background:var(--bg-elevated); border:1px solid var(--border-faint); border-radius:var(--r-lg); padding:20px 22px; display:flex; flex-direction:column; gap:14px; }
+.tp-card-hdr { display:flex; align-items:center; gap:10px; }
+.tp-card-name { font-size:14px; font-weight:600; color:var(--text-primary); flex:1; }
+.tp-card-del { width:28px; height:28px; border-radius:var(--r-xs); background:transparent; border:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:background 0.15s, color 0.15s; flex-shrink:0; }
+.tp-card-del:hover { background:var(--red-bg); color:var(--red); }
+.tp-card-del svg { width:13px; height:13px; }
+.tp-files-lbl { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px; }
+.tp-files { display:flex; flex-wrap:wrap; gap:6px; min-height:20px; align-items:center; }
+.tp-src-tag { display:inline-flex; align-items:center; gap:5px; background:var(--bg-raised); border:1px solid var(--border-soft); border-radius:99px; padding:3px 10px 3px 12px; font-size:11.5px; color:var(--text-secondary); }
+.tp-src-del { background:none; border:none; cursor:pointer; padding:0; line-height:1; color:var(--text-muted); font-size:14px; display:flex; align-items:center; transition:color 0.15s; }
+.tp-src-del:hover { color:var(--red); }
+.tp-empty-files { font-size:12px; color:var(--text-hint); font-style:italic; }
+.tp-drop { border:1.5px dashed var(--border-soft); border-radius:var(--r); padding:14px 18px; cursor:pointer; transition:border-color 0.15s, background 0.15s; text-align:center; }
+.tp-drop:hover, .tp-drop.drag-over { border-color:var(--border-mid); background:rgba(59,130,246,0.04); }
+.tp-drop-label { font-size:12px; color:var(--text-muted); pointer-events:none; }
+.tp-uploading { display:flex; flex-direction:column; gap:5px; }
+.tp-upload-pill { display:flex; align-items:center; gap:8px; padding:5px 10px; background:var(--bg-overlay); border:1px solid var(--border-faint); border-radius:var(--r-sm); font-size:11.5px; color:var(--text-muted); }
+.tp-upload-pill.done  { border-color:var(--green-border); background:var(--green-bg);  color:var(--green); }
+.tp-upload-pill.error { border-color:var(--red-border);   background:var(--red-bg);    color:var(--red); }
+
+/* Panel filter rows (chats + feedback panels) */
+.panel-filter-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.panel-filter-row select { flex:1; min-width:120px; background:var(--bg-overlay); border:1px solid var(--border-soft); border-radius:var(--r-sm); padding:8px 10px; color:var(--text-primary); font-family:inherit; font-size:12px; outline:none; cursor:pointer; transition:border-color 0.14s; }
+.panel-filter-row select:focus { border-color:rgba(59,130,246,0.4); }
+.panel-filter-row button { padding:8px 16px; background:var(--bg-overlay); border:1px solid var(--border-soft); border-radius:var(--r-sm); color:var(--text-secondary); font-family:inherit; font-size:12px; cursor:pointer; transition:all 0.14s; flex-shrink:0; }
+.panel-filter-row button:hover { border-color:var(--border-mid); color:var(--text-primary); }
+.panel-list { display:flex; flex-direction:column; gap:8px; }
 </style>
 </head>
 <body>
@@ -872,40 +918,52 @@ body::before {
 
   <!-- Main -->
   <div class="main">
-    <div id="output">
-      <div id="empty-state">
-        <div class="es-orb">
-          <div class="es-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            </svg>
+    <div id="chat-view">
+      <div id="output">
+        <div id="empty-state">
+          <div class="es-orb">
+            <div class="es-center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="es-title">What do you want to learn?</p>
+          <p class="es-body" id="es-body">Pick a topic below and ask your first question.</p>
+        </div>
+      </div>
+      <div id="input-area">
+        <div class="input-wrap" style="position:relative">
+          <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
+          <div class="input-composer">
+            <textarea id="question-input" placeholder="Ask anything about your study materials…" rows="2"></textarea>
+            <div class="composer-footer">
+              <button class="topic-chip" id="topic-chip" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
+                <span class="tc-label">All material</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="cf-hint" id="send-hint"></div>
+              <button id="ask-btn">
+                <span id="ask-label">Ask</span>
+                <svg id="ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-        <p class="es-title">What do you want to learn?</p>
-        <p class="es-body" id="es-body">Pick a topic below and ask your first question.</p>
       </div>
     </div>
-    <div id="input-area">
-      <div class="input-wrap" style="position:relative">
-        <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
-        <div class="input-composer">
-          <textarea id="question-input" placeholder="Ask anything about your study materials…" rows="2"></textarea>
-          <div class="composer-footer">
-            <button class="topic-chip" id="topic-chip" style="display:none">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
-              <span class="tc-label">All material</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="cf-hint" id="send-hint"></div>
-            <button id="ask-btn">
-              <span id="ask-label">Ask</span>
-              <svg id="ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+    <div id="admin-panel">
+      <div class="panel-hdr">
+        <button class="panel-back-btn" id="panel-back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to chat
+        </button>
+        <span class="panel-title" id="panel-title"></span>
       </div>
+      <div class="panel-body" id="panel-body"></div>
     </div>
   </div>
 
@@ -952,27 +1010,6 @@ body::before {
   </div>
 </div>
 
-<!-- Topics modal (admin only) -->
-<div id="topics-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:480px">
-    <div class="modal-head">
-      <div class="modal-icon-box">📂</div>
-      <div>
-        <p class="modal-title">Topics</p>
-        <p class="modal-sub">Organize class materials into topics. Students choose a topic before asking questions.</p>
-      </div>
-    </div>
-    <div class="new-topic-row">
-      <input type="text" id="new-topic-name" placeholder="New topic name…" autocomplete="off" spellcheck="false">
-      <button id="create-topic-btn">Create</button>
-    </div>
-    <div id="topics-list" class="topics-list"></div>
-    <div class="modal-footer">
-      <span class="modal-skip" id="close-topics-btn">Close</span>
-    </div>
-  </div>
-</div>
-
 <!-- Users modal (admin only) -->
 <div id="users-modal" class="modal-overlay">
   <div class="modal-card" style="max-width:420px">
@@ -1005,54 +1042,6 @@ body::before {
     </div>
     <div class="modal-footer">
       <span class="modal-skip" id="close-users-btn">Close</span>
-    </div>
-  </div>
-</div>
-
-<!-- Admin Chat Browser modal -->
-<div id="admin-chats-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:560px">
-    <div class="modal-head">
-      <div class="modal-icon-box">💬</div>
-      <div>
-        <p class="modal-title">Browse Chats</p>
-        <p class="modal-sub">Browse and read any student's conversations.</p>
-      </div>
-    </div>
-    <div class="admin-filter-row">
-      <select id="ac-user-filter"><option value="">All users</option></select>
-      <select id="ac-topic-filter"><option value="">All topics</option></select>
-      <button id="ac-filter-btn">Filter</button>
-    </div>
-    <div id="ac-body" class="admin-list"></div>
-    <div class="modal-footer">
-      <span class="modal-skip" id="close-admin-chats-btn">Close</span>
-    </div>
-  </div>
-</div>
-
-<!-- Admin Feedback modal -->
-<div id="admin-feedback-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:560px">
-    <div class="modal-head">
-      <div class="modal-icon-box">📊</div>
-      <div>
-        <p class="modal-title">User Feedback</p>
-        <p class="modal-sub">See what students found helpful or confusing.</p>
-      </div>
-    </div>
-    <div class="admin-filter-row">
-      <select id="af-user-filter"><option value="">All users</option></select>
-      <select id="af-rating-filter">
-        <option value="">All ratings</option>
-        <option value="up">👍 Positive</option>
-        <option value="down">👎 Negative</option>
-      </select>
-      <button id="af-filter-btn">Filter</button>
-    </div>
-    <div id="af-body" class="admin-list"></div>
-    <div class="modal-footer">
-      <span class="modal-skip" id="close-admin-feedback-btn">Close</span>
     </div>
   </div>
 </div>
@@ -1520,127 +1509,113 @@ function setTopic(topicId) {
   renderTopicChip();
 }
 
-/* ── Topics modal ── */
-const topicsModal = document.getElementById('topics-modal');
-function showTopicsModal() { loadTopicsModal(); topicsModal.classList.add('open'); }
-function hideTopicsModal() { topicsModal.classList.remove('open'); }
-document.getElementById('close-topics-btn').addEventListener('click', hideTopicsModal);
-
-document.getElementById('create-topic-btn').addEventListener('click', createTopic);
-document.getElementById('new-topic-name').addEventListener('keydown', e => { if (e.key==='Enter') createTopic(); });
-
-async function createTopic() {
-  const name = document.getElementById('new-topic-name').value.trim();
-  if (!name) return;
-  try {
-    const r = await fetch('/topics', {
-      method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
-      body: JSON.stringify({name}),
-    });
+/* ── Topics panel ── */
+async function loadTopicsPanel() {
+  const body = document.getElementById('panel-body');
+  body.innerHTML = '';
+  // create-topic row
+  const createRow = mk('div', 'tp-create-row');
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text'; nameInput.placeholder = 'New topic name…'; nameInput.autocomplete = 'off'; nameInput.spellcheck = false;
+  const createBtn = document.createElement('button'); createBtn.textContent = 'Create topic';
+  const cardsWrap = mk('div', 'tp-cards');
+  createBtn.addEventListener('click', async () => {
+    const name = nameInput.value.trim(); if (!name) return;
+    const r = await fetch('/topics', { method:'POST', headers:getHeaders({'Content-Type':'application/json'}), body: JSON.stringify({name}) });
     if (!r.ok) return;
-    document.getElementById('new-topic-name').value = '';
-    await fetchTopics();
-    loadTopicsModal();
-  } catch {}
+    nameInput.value = '';
+    await fetchTopics(); renderTopicCards(cardsWrap);
+  });
+  nameInput.addEventListener('keydown', e => { if (e.key==='Enter') createBtn.click(); });
+  createRow.append(nameInput, createBtn);
+  body.append(createRow, cardsWrap);
+  renderTopicCards(cardsWrap);
 }
 
-async function loadTopicsModal() {
-  const list = document.getElementById('topics-list');
-  // fetch available sources for the add-source dropdowns
-  let availableSources = [];
-  try {
-    const r = await fetch('/sources', { headers: getHeaders() });
-    if (r.ok) availableSources = (await r.json()).map(s => s.source);
-  } catch {}
-
-  list.innerHTML = '';
+function renderTopicCards(container) {
+  container.innerHTML = '';
   if (!topics.length) {
-    list.innerHTML = '<p style="font-size:12px;color:var(--text-hint);padding:8px 4px;font-style:italic">No topics yet. Create one above.</p>';
-    return;
+    const empty = mk('p', 'tp-empty-files'); empty.textContent = 'No topics yet. Create one above.'; container.appendChild(empty); return;
   }
   topics.forEach(topic => {
-    const card = mk('div', 'topic-card');
+    const card = mk('div', 'tp-card'); card.dataset.topicId = topic.id;
     // header
-    const hdr = mk('div', 'tc-header');
-    const nameEl = mk('span', 'tc-name'); nameEl.textContent = topic.name;
-    const delBtn = mk('button', 'tc-del');
-    delBtn.title = 'Delete topic';
+    const hdr = mk('div', 'tp-card-hdr');
+    const nameEl = mk('span', 'tp-card-name'); nameEl.textContent = topic.name;
+    const delBtn = mk('button', 'tp-card-del'); delBtn.title = 'Delete topic';
     delBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`;
     delBtn.addEventListener('click', async () => {
       if (!confirm(`Delete topic "${topic.name}"?`)) return;
       await fetch(`/topics/${topic.id}`, { method:'DELETE', headers:getHeaders() });
-      await fetchTopics(); loadTopicsModal();
+      await fetchTopics(); const cw = document.querySelector('.tp-cards'); if (cw) renderTopicCards(cw);
     });
-    hdr.append(nameEl, delBtn);
-    card.appendChild(hdr);
-    // sources
-    const srcWrap = mk('div', 'tc-sources');
-    if (topic.sources.length) {
-      topic.sources.forEach(src => {
-        const tag = mk('span', 'src-tag');
-        tag.innerHTML = `${esc(src)}<button class="src-tag-del" title="Remove">×</button>`;
-        tag.querySelector('.src-tag-del').addEventListener('click', async () => {
-          await fetch(`/topics/${topic.id}/sources/${encodeURIComponent(src)}`, { method:'DELETE', headers:getHeaders() });
-          await fetchTopics(); loadTopicsModal();
-        });
-        srcWrap.appendChild(tag);
-      });
-    } else {
-      const empty = mk('span', 'tc-empty'); empty.textContent = 'No files added yet.';
-      srcWrap.appendChild(empty);
-    }
-    card.appendChild(srcWrap);
-    // add existing source row
-    const unassigned = availableSources.filter(s => !topic.sources.includes(s));
-    if (unassigned.length) {
-      const addRow = mk('div', 'tc-add-row');
-      const sel = document.createElement('select');
-      unassigned.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
-      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add';
-      addBtn.addEventListener('click', async () => {
-        await fetch(`/topics/${topic.id}/sources`, {
-          method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
-          body: JSON.stringify({source_name: sel.value}),
-        });
-        await fetchTopics(); loadTopicsModal();
-      });
-      addRow.append(sel, addBtn);
-      card.appendChild(addRow);
-    }
-    // upload new file row
-    const uploadRow = mk('div', 'tc-add-row');
-    const uploadInput = document.createElement('input');
-    uploadInput.type = 'file';
-    uploadInput.accept = '.pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf,.toml,.yaml,.yml,.json,.xml,.csv,.html,.htm,.docx,.xlsx,.xls,.pptx,.ppt,.epub,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp';
-    uploadInput.style.cssText = 'flex:1;font-size:11px;color:var(--text-secondary);background:var(--bg-overlay);border:1px solid var(--border-soft);border-radius:var(--r-xs);padding:4px 6px;cursor:pointer;';
-    const uploadStatus = mk('span', ''); uploadStatus.style.cssText = 'font-size:11px;color:var(--text-secondary);';
-    uploadInput.addEventListener('change', async () => {
-      if (!uploadInput.files[0]) return;
-      uploadStatus.textContent = 'Uploading…';
-      await ingestAndAssign(uploadInput.files[0], topic.id, uploadStatus);
-      uploadInput.value = '';
+    hdr.append(nameEl, delBtn); card.appendChild(hdr);
+    // files
+    const filesLbl = mk('p', 'tp-files-lbl'); filesLbl.textContent = 'Files'; card.appendChild(filesLbl);
+    const filesWrap = mk('div', 'tp-files'); filesWrap.dataset.topicId = topic.id;
+    rebuildSourceTags(filesWrap, topic); card.appendChild(filesWrap);
+    // drop zone
+    const drop = mk('div', 'tp-drop');
+    const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.multiple = true;
+    fileInput.accept = '.pdf,.txt,.md,.log,.rst,.ini,.cfg,.conf,.toml,.yaml,.yml,.json,.xml,.csv,.html,.htm,.docx,.xlsx,.xls,.pptx,.ppt,.epub,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp';
+    const dropLabel = mk('span', 'tp-drop-label'); dropLabel.textContent = 'Click to upload files — or drag them here';
+    drop.append(fileInput, dropLabel);
+    drop.addEventListener('click', e => { if (e.target !== fileInput) fileInput.click(); });
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('drag-over');
+      handleFiles(Array.from(e.dataTransfer.files), topic.id, uploadingWrap, filesWrap);
     });
-    uploadRow.append(uploadInput, uploadStatus);
-    card.appendChild(uploadRow);
-    list.appendChild(card);
+    fileInput.addEventListener('change', () => {
+      if (!fileInput.files.length) return;
+      handleFiles(Array.from(fileInput.files), topic.id, uploadingWrap, filesWrap);
+      fileInput.value = '';
+    });
+    card.appendChild(drop);
+    const uploadingWrap = mk('div', 'tp-uploading'); card.appendChild(uploadingWrap);
+    container.appendChild(card);
   });
 }
 
-async function ingestAndAssign(file, topicId, statusEl) {
+function rebuildSourceTags(filesWrap, topic) {
+  filesWrap.innerHTML = '';
+  if (!topic.sources.length) {
+    const empty = mk('span', 'tp-empty-files'); empty.textContent = 'No files yet.'; filesWrap.appendChild(empty); return;
+  }
+  topic.sources.forEach(src => {
+    const tag = mk('span', 'tp-src-tag');
+    tag.innerHTML = `${esc(src)}<button class="tp-src-del" title="Remove">×</button>`;
+    tag.querySelector('.tp-src-del').addEventListener('click', async e => {
+      e.stopPropagation();
+      await fetch(`/topics/${topic.id}/sources/${encodeURIComponent(src)}`, { method:'DELETE', headers:getHeaders() });
+      await fetchTopics(); const updated = topics.find(t => t.id === topic.id); if (updated) rebuildSourceTags(filesWrap, updated);
+    });
+    filesWrap.appendChild(tag);
+  });
+}
+
+function handleFiles(files, topicId, uploadingWrap, filesWrap) {
   if (!hasKeys()) { showSetupModal(); return; }
-  const form = new FormData();
-  form.append('file', file);
+  files.forEach(file => {
+    const pill = mk('div', 'tp-upload-pill'); pill.textContent = `${file.name} — Uploading…`;
+    uploadingWrap.appendChild(pill);
+    ingestAndAssign(file, topicId, pill, filesWrap);
+  });
+}
+
+async function ingestAndAssign(file, topicId, pill, filesWrap) {
+  const form = new FormData(); form.append('file', file);
   try {
     const res = await fetch('/ingest', { method:'POST', headers:getHeaders(), body:form });
-    if (!res.ok) { statusEl.textContent = await friendlyError(res); return; }
+    if (!res.ok) { pill.textContent = `${file.name} — ${await friendlyError(res)}`; pill.classList.add('error'); return; }
     const data = await res.json();
-    await fetch(`/topics/${topicId}/sources`, {
-      method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
-      body: JSON.stringify({source_name: data.filename}),
-    });
-    statusEl.textContent = `✓ ${data.chunks_ingested} chunks`;
-    await fetchTopics(); loadTopicsModal();
-  } catch { statusEl.textContent = 'Upload failed.'; }
+    await fetch(`/topics/${topicId}/sources`, { method:'POST', headers:getHeaders({'Content-Type':'application/json'}), body: JSON.stringify({source_name: data.filename}) });
+    pill.textContent = `✓ ${file.name}`; pill.classList.add('done');
+    await fetchTopics();
+    const updated = topics.find(t => t.id === topicId); if (updated && filesWrap) rebuildSourceTags(filesWrap, updated);
+    setTimeout(() => { pill.style.transition='opacity 0.5s'; pill.style.opacity='0'; setTimeout(()=>pill.remove(),500); }, 3000);
+  } catch { pill.textContent = `${file.name} — Upload failed.`; pill.classList.add('error'); }
 }
 
 async function init() {
@@ -1972,54 +1947,62 @@ function appendFeedbackBar(block, msgIdx, question, answer, existing) {
   block.appendChild(bar);
 }
 
-/* ── Admin Chat Browser ── */
-const adminChatsModal    = document.getElementById('admin-chats-modal');
-const adminFeedbackModal = document.getElementById('admin-feedback-modal');
-
-document.getElementById('admin-toggle').addEventListener('click', () => document.getElementById('sb-admin').classList.toggle('open'));
-document.getElementById('manage-topics-btn').addEventListener('click', showTopicsModal);
-document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
-document.getElementById('browse-chats-btn').addEventListener('click', () => showAdminChatsModal());
-document.getElementById('close-admin-chats-btn').addEventListener('click', () => adminChatsModal.classList.remove('open'));
-document.getElementById('view-feedback-btn').addEventListener('click', () => showAdminFeedbackModal());
-document.getElementById('close-admin-feedback-btn').addEventListener('click', () => adminFeedbackModal.classList.remove('open'));
-document.getElementById('ac-filter-btn').addEventListener('click', () => loadAdminChats());
-document.getElementById('af-filter-btn').addEventListener('click', () => loadAdminFeedback());
-
-async function showAdminChatsModal() {
-  adminChatsModal.classList.add('open');
-  // populate user filter
-  const uSel = document.getElementById('ac-user-filter');
-  uSel.innerHTML = '<option value="">All users</option>';
-  try {
-    const r = await fetch('/auth/users', { headers: getHeaders() });
-    if (r.ok) (await r.json()).forEach(u => {
-      const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o);
-    });
-  } catch {}
-  // populate topic filter
-  const tSel = document.getElementById('ac-topic-filter');
-  tSel.innerHTML = '<option value="">All topics</option>';
-  topics.forEach(t => {
-    const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; tSel.appendChild(o);
-  });
-  await loadAdminChats();
+/* ── Admin panels ── */
+function showAdminPanel(name) {
+  document.getElementById('panel-title').textContent = { topics:'Topics', chats:'Browse Chats', feedback:'Feedback' }[name] || name;
+  document.getElementById('chat-view').style.display   = 'none';
+  document.getElementById('admin-panel').style.display = 'flex';
+  if (name === 'topics')        loadTopicsPanel();
+  else if (name === 'chats')    loadChatsPanel();
+  else if (name === 'feedback') loadFeedbackPanel();
+}
+function hideAdminPanel() {
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('chat-view').style.display   = 'flex';
 }
 
-async function loadAdminChats() {
-  const body = document.getElementById('ac-body');
-  body.innerHTML = '<p class="admin-empty">Loading…</p>';
-  const username = document.getElementById('ac-user-filter').value;
-  const topicId  = document.getElementById('ac-topic-filter').value;
+document.getElementById('admin-toggle').addEventListener('click', () => document.getElementById('sb-admin').classList.toggle('open'));
+document.getElementById('manage-topics-btn').addEventListener('click', () => showAdminPanel('topics'));
+document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
+document.getElementById('browse-chats-btn').addEventListener('click', () => showAdminPanel('chats'));
+document.getElementById('view-feedback-btn').addEventListener('click', () => showAdminPanel('feedback'));
+document.getElementById('panel-back-btn').addEventListener('click', hideAdminPanel);
+
+/* ── Chats panel ── */
+async function loadChatsPanel() {
+  const body = document.getElementById('panel-body');
+  body.innerHTML = '';
+  const filterRow = mk('div', 'panel-filter-row');
+  const uSel = document.createElement('select'); uSel.id = 'ac-user-filter';
+  uSel.innerHTML = '<option value="">All users</option>';
+  const tSel = document.createElement('select'); tSel.id = 'ac-topic-filter';
+  tSel.innerHTML = '<option value="">All topics</option>';
+  topics.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; tSel.appendChild(o); });
+  const filterBtn = document.createElement('button'); filterBtn.textContent = 'Filter';
+  filterRow.append(uSel, tSel, filterBtn);
+  body.appendChild(filterRow);
+  try {
+    const r = await fetch('/auth/users', { headers: getHeaders() });
+    if (r.ok) (await r.json()).forEach(u => { const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o); });
+  } catch {}
+  const listWrap = mk('div', 'panel-list'); body.appendChild(listWrap);
+  filterBtn.addEventListener('click', () => renderChatsList(listWrap));
+  await renderChatsList(listWrap);
+}
+
+async function renderChatsList(container) {
+  container.innerHTML = '<p class="admin-empty">Loading…</p>';
+  const username = document.getElementById('ac-user-filter')?.value || '';
+  const topicId  = document.getElementById('ac-topic-filter')?.value || '';
   const qs = new URLSearchParams();
   if (username) qs.set('username', username);
   if (topicId)  qs.set('topic_id', topicId);
   try {
     const r = await fetch(`/admin/chats?${qs}`, { headers: getHeaders() });
-    if (!r.ok) { body.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
+    if (!r.ok) { container.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
     const chats = await r.json();
-    body.innerHTML = '';
-    if (!chats.length) { body.innerHTML = '<p class="admin-empty">No chats found.</p>'; return; }
+    container.innerHTML = '';
+    if (!chats.length) { container.innerHTML = '<p class="admin-empty">No chats found.</p>'; return; }
     chats.forEach(c => {
       const card = mk('div', 'admin-chat-card');
       const topicLabel = c.topicId ? (topics.find(t => t.id === c.topicId)?.name || c.topicId) : 'All material';
@@ -2034,21 +2017,19 @@ async function loadAdminChats() {
           <span>${new Date(c.createdAt).toLocaleDateString()}</span>
         </div>`;
       card.addEventListener('click', () => viewAdminChat(c.username, c.id, c.title));
-      body.appendChild(card);
+      container.appendChild(card);
     });
-  } catch { body.innerHTML = '<p class="admin-empty">Error loading chats.</p>'; }
+  } catch { container.innerHTML = '<p class="admin-empty">Error loading chats.</p>'; }
 }
 
 async function viewAdminChat(username, chatId, title) {
-  const body = document.getElementById('ac-body');
+  const body = document.getElementById('panel-body');
   body.innerHTML = '';
   const backBtn = mk('button', 'admin-back-btn');
   backBtn.innerHTML = `← Back to list`;
-  backBtn.addEventListener('click', loadAdminChats);
-  const heading = mk('p', 'blk-label');
-  heading.textContent = `${username}: ${title || 'Untitled'}`;
+  backBtn.addEventListener('click', loadChatsPanel);
+  const heading = mk('p', 'blk-label'); heading.textContent = `${username}: ${title || 'Untitled'}`;
   body.append(backBtn, heading);
-
   try {
     const r = await fetch(`/admin/chats/${encodeURIComponent(username)}/${chatId}`, { headers: getHeaders() });
     if (!r.ok) { body.appendChild(Object.assign(mk('p','admin-empty'), {textContent:'Failed to load chat.'})); return; }
@@ -2056,8 +2037,7 @@ async function viewAdminChat(username, chatId, title) {
     const view = mk('div', 'admin-chat-view');
     const msgs = chat.messages || [];
     for (let i = 0; i < msgs.length; i += 2) {
-      const um = msgs[i]; const am = msgs[i+1];
-      if (!um) continue;
+      const um = msgs[i]; const am = msgs[i+1]; if (!um) continue;
       const pair = mk('div', 'acv-pair');
       const qEl = mk('div', 'acv-q'); qEl.textContent = um.content; pair.appendChild(qEl);
       if (am) {
@@ -2075,34 +2055,40 @@ async function viewAdminChat(username, chatId, title) {
   } catch { body.appendChild(Object.assign(mk('p','admin-empty'), {textContent:'Error loading chat.'})); }
 }
 
-/* ── Admin Feedback Viewer ── */
-async function showAdminFeedbackModal() {
-  adminFeedbackModal.classList.add('open');
-  const uSel = document.getElementById('af-user-filter');
+/* ── Feedback panel ── */
+async function loadFeedbackPanel() {
+  const body = document.getElementById('panel-body');
+  body.innerHTML = '';
+  const filterRow = mk('div', 'panel-filter-row');
+  const uSel = document.createElement('select'); uSel.id = 'af-user-filter';
   uSel.innerHTML = '<option value="">All users</option>';
+  const rSel = document.createElement('select'); rSel.id = 'af-rating-filter';
+  rSel.innerHTML = '<option value="">All ratings</option><option value="up">👍 Positive</option><option value="down">👎 Negative</option>';
+  const filterBtn = document.createElement('button'); filterBtn.textContent = 'Filter';
+  filterRow.append(uSel, rSel, filterBtn);
+  body.appendChild(filterRow);
   try {
     const r = await fetch('/auth/users', { headers: getHeaders() });
-    if (r.ok) (await r.json()).forEach(u => {
-      const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o);
-    });
+    if (r.ok) (await r.json()).forEach(u => { const o = document.createElement('option'); o.value = u.username; o.textContent = u.username; uSel.appendChild(o); });
   } catch {}
-  await loadAdminFeedback();
+  const listWrap = mk('div', 'panel-list'); body.appendChild(listWrap);
+  filterBtn.addEventListener('click', () => renderFeedbackList(listWrap));
+  await renderFeedbackList(listWrap);
 }
 
-async function loadAdminFeedback() {
-  const body = document.getElementById('af-body');
-  body.innerHTML = '<p class="admin-empty">Loading…</p>';
-  const username = document.getElementById('af-user-filter').value;
-  const rating   = document.getElementById('af-rating-filter').value;
+async function renderFeedbackList(container) {
+  container.innerHTML = '<p class="admin-empty">Loading…</p>';
+  const username = document.getElementById('af-user-filter')?.value || '';
+  const rating   = document.getElementById('af-rating-filter')?.value || '';
   const qs = new URLSearchParams();
   if (username) qs.set('username', username);
   if (rating)   qs.set('rating', rating);
   try {
     const r = await fetch(`/admin/feedback?${qs}`, { headers: getHeaders() });
-    if (!r.ok) { body.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
+    if (!r.ok) { container.innerHTML = '<p class="admin-empty">Failed to load.</p>'; return; }
     const fb = await r.json();
-    body.innerHTML = '';
-    if (!fb.length) { body.innerHTML = '<p class="admin-empty">No feedback yet.</p>'; return; }
+    container.innerHTML = '';
+    if (!fb.length) { container.innerHTML = '<p class="admin-empty">No feedback yet.</p>'; return; }
     fb.forEach(f => {
       const el = mk('div', 'fb-entry');
       const ratingLbl = f.rating === 'up' ? '👍 Helpful' : '👎 Not helpful';
@@ -2116,9 +2102,9 @@ async function loadAdminFeedback() {
         <div class="fbe-q">"${esc(trunc(f.question, 120))}"</div>
         <div class="fbe-a">${esc(trunc(f.answer, 200))}</div>
         ${f.comment ? `<div class="fbe-comment">${esc(f.comment)}</div>` : ''}`;
-      body.appendChild(el);
+      container.appendChild(el);
     });
-  } catch { body.innerHTML = '<p class="admin-empty">Error loading feedback.</p>'; }
+  } catch { container.innerHTML = '<p class="admin-empty">Error loading feedback.</p>'; }
 }
 
 /* ── Boot ── */
