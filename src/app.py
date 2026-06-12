@@ -1,6 +1,11 @@
 """FastAPI application — thin wiring layer."""
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+# ragPipeline files use bare imports (e.g. `from ragPipeline.chunk import`)
+# that assume src/ is on the path — add it so they resolve correctly.
+sys.path.insert(0, str(Path(__file__).parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
