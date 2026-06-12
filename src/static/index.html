@@ -786,7 +786,7 @@ body::before {
 
     <div class="sb-sessions" id="sessions-list">
       <p class="sessions-lbl">Recent</p>
-      <div class="no-sessions" id="no-sessions">No chats yet.<br>Ask a question to start.</div>
+      <div class="no-sessions" id="no-sessions">No conversations yet.</div>
     </div>
 
     <div class="sb-admin" id="sb-admin" style="display:none">
@@ -850,7 +850,7 @@ body::before {
 
     <div class="sb-footer">
       <div class="topk-row">
-        <span class="topk-label">Sources</span>
+        <span class="topk-label" title="How many source passages to read before answering">Search depth</span>
         <div class="topk-control">
           <button class="topk-btn" id="topk-dec">−</button>
           <div class="topk-val" id="topk-val">5</div>
@@ -881,22 +881,22 @@ body::before {
             </svg>
           </div>
         </div>
-        <p class="es-title">Ask anything</p>
-        <p class="es-body">Upload a document in the sidebar, then ask questions about it.</p>
+        <p class="es-title">What do you want to learn?</p>
+        <p class="es-body" id="es-body">Pick a topic below and ask your first question.</p>
       </div>
     </div>
     <div id="input-area">
       <div class="input-wrap" style="position:relative">
         <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
         <div class="input-composer">
-          <textarea id="question-input" placeholder="Ask a question about your documents…" rows="2"></textarea>
+          <textarea id="question-input" placeholder="Ask anything about your study materials…" rows="2"></textarea>
           <div class="composer-footer">
             <button class="topic-chip" id="topic-chip" style="display:none">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
-              <span class="tc-label">All sources</span>
+              <span class="tc-label">All material</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <div class="cf-hint"><kbd>⌘</kbd><kbd>↵</kbd> to send</div>
+            <div class="cf-hint" id="send-hint"></div>
             <button id="ask-btn">
               <span id="ask-label">Ask</span>
               <svg id="ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -933,7 +933,7 @@ body::before {
       <div class="modal-icon-box">🔒</div>
       <div>
         <p class="modal-title">Sign in to rewise</p>
-        <p class="modal-sub">Use the account set up via <code style="font-size:11px;color:var(--accent-light)">ADMIN_USERNAME</code> / <code style="font-size:11px;color:var(--accent-light)">ADMIN_PASSWORD</code> in your <code style="font-size:11px;color:var(--accent-light)">.env</code>.</p>
+        <p class="modal-sub">Enter your username and password to continue.</p>
       </div>
     </div>
     <div class="key-group">
@@ -959,7 +959,7 @@ body::before {
       <div class="modal-icon-box">📂</div>
       <div>
         <p class="modal-title">Topics</p>
-        <p class="modal-sub">Group documents into topics. Users can filter any chat to a topic.</p>
+        <p class="modal-sub">Organize class materials into topics. Students choose a topic before asking questions.</p>
       </div>
     </div>
     <div class="new-topic-row">
@@ -980,7 +980,7 @@ body::before {
       <div class="modal-icon-box">👥</div>
       <div>
         <p class="modal-title">User Management</p>
-        <p class="modal-sub">Manage who can access this rewise instance.</p>
+        <p class="modal-sub">Manage student and teacher accounts.</p>
       </div>
     </div>
     <div class="user-list" id="user-list"></div>
@@ -1016,7 +1016,7 @@ body::before {
       <div class="modal-icon-box">💬</div>
       <div>
         <p class="modal-title">Browse Chats</p>
-        <p class="modal-sub">View all users' chat histories. Filter by user or topic.</p>
+        <p class="modal-sub">Browse and read any student's conversations.</p>
       </div>
     </div>
     <div class="admin-filter-row">
@@ -1038,7 +1038,7 @@ body::before {
       <div class="modal-icon-box">📊</div>
       <div>
         <p class="modal-title">User Feedback</p>
-        <p class="modal-sub">Review ratings and comments left by users on answers.</p>
+        <p class="modal-sub">See what students found helpful or confusing.</p>
       </div>
     </div>
     <div class="admin-filter-row">
@@ -1092,8 +1092,8 @@ body::before {
     <div id="keys-error"></div>
     <button class="save-btn" id="save-keys-btn">Save &amp; continue</button>
     <div class="modal-footer">
-      <p class="modal-privacy">Keys live only in your browser's localStorage.</p>
-      <span class="modal-skip" id="modal-skip">I've set keys in .env — skip</span>
+      <p class="modal-privacy">Your keys are stored locally and never sent to our servers.</p>
+      <span class="modal-skip" id="modal-skip">Skip for now</span>
     </div>
   </div>
 </div>
@@ -1245,17 +1245,9 @@ function renderHistory(session) {
     block.appendChild(qb);
 
     if (am) {
-      if (am.hyde) {
-        const wrap = mk('div');
-        wrap.append(lbl('Hypothetical answer'));
-        const hw = mk('div', 'hyde-wrap');
-        const ht = mk('p', 'hyde-text');
-        ht.textContent = am.hyde;
-        hw.appendChild(ht); wrap.appendChild(hw); block.appendChild(wrap);
-      }
       if (am.sources && am.sources.length) {
         const sw = mk('div');
-        sw.append(lbl('Retrieved sources'));
+        sw.append(lbl('Sources used'));
         const sg = mk('div', 'source-grid');
         am.sources.forEach((s, i) => {
           const pct = Math.round(s.relevance * 100);
@@ -1270,7 +1262,6 @@ function renderHistory(session) {
         sw.appendChild(sg); block.appendChild(sw);
       }
       const aw = mk('div');
-      aw.append(lbl('Answer'));
       const at = mk('div', 'answer-text');
       at.textContent = am.content;
       aw.appendChild(at); block.appendChild(aw);
@@ -1335,6 +1326,10 @@ function updateUserBar(username, role) {
   badge.textContent = role;
   badge.className = 'role-badge ' + (role === 'admin' ? 'admin' : 'user');
   document.getElementById('sb-admin').style.display = role === 'admin' ? 'block' : 'none';
+  const esBody = document.getElementById('es-body');
+  if (esBody) esBody.textContent = role === 'admin'
+    ? 'Open the Admin panel, create a topic, upload materials, then start a conversation.'
+    : 'Pick a topic from the composer below, then ask your first question.';
 }
 
 document.getElementById('signout-btn').addEventListener('click', () => {
@@ -1486,7 +1481,7 @@ function renderTopicChip() {
     chip.querySelector('.tc-label').textContent = t ? t.name : 'Unknown topic';
   } else {
     chip.classList.remove('active');
-    chip.querySelector('.tc-label').textContent = 'All sources';
+    chip.querySelector('.tc-label').textContent = 'All material';
   }
 }
 
@@ -1505,7 +1500,7 @@ topicDrop.addEventListener('click', e => e.stopPropagation());
 function renderTopicDropdown() {
   topicDrop.innerHTML = '';
   const allItem = mk('div', 'td-item' + (!currentTopicId ? ' selected' : ''));
-  allItem.innerHTML = `<span class="td-item-name">All sources</span>`;
+  allItem.innerHTML = `<span class="td-item-name">All material</span>`;
   allItem.addEventListener('click', () => { setTopic(null); topicDrop.style.display='none'; });
   topicDrop.appendChild(allItem);
   if (topics.length) {
@@ -1591,7 +1586,7 @@ async function loadTopicsModal() {
         srcWrap.appendChild(tag);
       });
     } else {
-      const empty = mk('span', 'tc-empty'); empty.textContent = 'No sources assigned yet.';
+      const empty = mk('span', 'tc-empty'); empty.textContent = 'No files added yet.';
       srcWrap.appendChild(empty);
     }
     card.appendChild(srcWrap);
@@ -1601,7 +1596,7 @@ async function loadTopicsModal() {
       const addRow = mk('div', 'tc-add-row');
       const sel = document.createElement('select');
       unassigned.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
-      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add existing';
+      const addBtn = mk('button', 'tc-add-btn'); addBtn.textContent = 'Add';
       addBtn.addEventListener('click', async () => {
         await fetch(`/topics/${topic.id}/sources`, {
           method:'POST', headers:getHeaders({'Content-Type':'application/json'}),
@@ -1711,14 +1706,18 @@ function appendEmpty() {
   const out = document.getElementById('output');
   const es  = mk('div','');
   es.id = 'empty-state';
+  const role = getUser().role || 'user';
+  const body = role === 'admin'
+    ? 'Open the Admin panel, create a topic, upload materials, then start a conversation.'
+    : 'Pick a topic from the composer below, then ask your first question.';
   es.innerHTML = `
     <div class="es-orb"><div class="es-center">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
       </svg>
     </div></div>
-    <p class="es-title">Ask anything</p>
-    <p class="es-body">Upload a document in the sidebar, then ask questions about it.</p>`;
+    <p class="es-title">What do you want to learn?</p>
+    <p class="es-body" id="es-body">${body}</p>`;
   out.appendChild(es);
 }
 
@@ -1738,7 +1737,7 @@ questionInput.addEventListener('keydown', e => {
 askBtn.addEventListener('click', submitQuery);
 
 const STEPS = ['hypothesis','sources','answering'];
-const SLABELS = {hypothesis:'Hypothesis',sources:'Sources',answering:'Answer'};
+const SLABELS = {hypothesis:'Thinking',sources:'Searching',answering:'Writing'};
 
 function makePipeline() {
   const wrap = mk('div','pipeline'), els = {};
@@ -1793,13 +1792,9 @@ async function submitQuery() {
   const {wrap:pipWrap, els:pipEls} = makePipeline();
   setPipActive(pipEls, pipWrap, 'hypothesis');
 
-  const hydeSec = mk('div'); hydeSec.style.display='none';
-  const hydeWrap= mk('div','hyde-wrap'); const hydeText=mk('p','hyde-text');
-  hydeWrap.appendChild(hydeText); hydeSec.append(lbl('Hypothetical answer'), hydeWrap);
-
   const srcSec  = mk('div'); srcSec.style.display='none';
   const srcGrid = mk('div','source-grid');
-  srcSec.append(lbl('Retrieved sources'), srcGrid);
+  srcSec.append(lbl('Sources used'), srcGrid);
 
   const thinkWrap = mk('div','thinking-wrap');
   [72,58,40].forEach((w,i)=>{ const l=mk('div','shimmer-line'); l.style.cssText=`width:${w}%;animation-delay:${i*0.18}s`; thinkWrap.appendChild(l); });
@@ -1807,9 +1802,9 @@ async function submitQuery() {
   const ansSec = mk('div'); ansSec.style.display='none';
   const ansText= mk('div','answer-text');
   const cursor = mk('span','cursor');
-  ansSec.append(lbl('Answer'), ansText);
+  ansSec.appendChild(ansText);
 
-  block.append(qb, pipWrap, hydeSec, srcSec, thinkWrap, ansSec);
+  block.append(qb, pipWrap, srcSec, thinkWrap, ansSec);
   inner.appendChild(block);
   scrollEnd();
 
@@ -1842,8 +1837,7 @@ async function submitQuery() {
 
         if (evt.type==='hyde') {
           collHyde = evt.text;
-          hydeSec.style.display='block'; hydeText.textContent=evt.text;
-          setPipActive(pipEls,pipWrap,'sources'); scrollEnd();
+          setPipActive(pipEls,pipWrap,'sources');
 
         } else if (evt.type==='sources') {
           collSources = evt.sources;
@@ -1915,8 +1909,8 @@ function trunc(s,n)  { return s.length>n?s.slice(0,n)+'…':s; }
 /* ── Feedback bar ── */
 function appendFeedbackBar(block, msgIdx, question, answer, existing) {
   const bar = mk('div', 'feedback-bar');
-  const upBtn   = mk('button', 'fb-btn up');   upBtn.innerHTML   = '👍 Helpful';
-  const downBtn = mk('button', 'fb-btn down'); downBtn.innerHTML = '👎 Not helpful';
+  const upBtn   = mk('button', 'fb-btn up');   upBtn.innerHTML   = '👍'; upBtn.title   = 'Helpful';
+  const downBtn = mk('button', 'fb-btn down'); downBtn.innerHTML = '👎'; downBtn.title = 'Not helpful';
   const statusEl = mk('span', 'fb-status');
 
   const commentRow = mk('div', 'fb-comment-row');
@@ -1963,14 +1957,14 @@ function appendFeedbackBar(block, msgIdx, question, answer, existing) {
           rating: pendingRating, comment,
         }),
       });
-      if (!res.ok) { statusEl.textContent = 'Failed to save.'; submitBtn.disabled = false; return; }
+      if (!res.ok) { statusEl.textContent = "Couldn't save — try again."; submitBtn.disabled = false; return; }
       // persist in the session message
       if (currentSession.messages[msgIdx]) {
         currentSession.messages[msgIdx].feedback = { rating: pendingRating, comment };
         await saveSession(currentSession);
       }
       commentRow.classList.remove('visible');
-      statusEl.textContent = pendingRating === 'up' ? 'Marked helpful' : 'Marked unhelpful';
+      statusEl.textContent = 'Thanks for the feedback';
     } catch { statusEl.textContent = 'Network error.'; submitBtn.disabled = false; }
   });
 
@@ -2028,7 +2022,7 @@ async function loadAdminChats() {
     if (!chats.length) { body.innerHTML = '<p class="admin-empty">No chats found.</p>'; return; }
     chats.forEach(c => {
       const card = mk('div', 'admin-chat-card');
-      const topicLabel = c.topicId ? (topics.find(t => t.id === c.topicId)?.name || c.topicId) : 'All sources';
+      const topicLabel = c.topicId ? (topics.find(t => t.id === c.topicId)?.name || c.topicId) : 'All material';
       card.innerHTML = `
         <div class="acc-header">
           <span class="acc-title">${esc(c.title || 'Untitled')}</span>
@@ -2130,6 +2124,14 @@ async function loadAdminFeedback() {
 /* ── Boot ── */
 currentSession = newSessionObj();
 activeChatId   = currentSession.id;
+
+// Platform-aware keyboard hint
+(function() {
+  const mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  const hint = document.getElementById('send-hint');
+  if (hint) hint.innerHTML = mac ? '<kbd>⌘</kbd><kbd>↵</kbd> to send' : '<kbd>Ctrl</kbd><kbd>↵</kbd> to send';
+})();
+
 init();
 </script>
 </body>
