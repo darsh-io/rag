@@ -8,7 +8,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.db import init_db
 from src.routers import auth, users, classes, topics, documents, chats, feedback
@@ -37,6 +38,9 @@ app.include_router(documents.router)
 app.include_router(chats.router)
 app.include_router(feedback.router)
 
+STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/health")
 def health():
@@ -45,5 +49,4 @@ def health():
 
 @app.get("/")
 def serve_frontend():
-    html = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
-    return HTMLResponse(html)
+    return FileResponse(STATIC_DIR / "index.html")
