@@ -491,6 +491,36 @@ body::before {
 .icon-btn:hover { background: var(--bg-hover); border-color: var(--border-mid); color: var(--text-secondary); }
 .icon-btn svg { width: 12px; height: 12px; }
 
+/* ── Admin panel ── */
+.sb-admin {
+  border-top: 1px solid var(--border-faint);
+  flex-shrink: 0; max-height: 42px; overflow: hidden;
+  transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.sb-admin.open { max-height: 240px; }
+.admin-toggle {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 11px 14px;
+  background: transparent; border: none; font-family: inherit;
+  font-size: 11.5px; font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; text-align: left; transition: color 0.12s;
+}
+.admin-toggle:hover { color: var(--text-primary); }
+.admin-toggle svg { width: 12px; height: 12px; flex-shrink: 0; }
+.admin-toggle .chev { margin-left: auto; color: var(--text-muted); transition: transform 0.25s; }
+.sb-admin.open .admin-toggle .chev { transform: rotate(180deg); }
+.admin-body { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 3px; }
+.admin-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 8px 10px; border-radius: var(--r-sm);
+  background: transparent; border: none; font-family: inherit;
+  font-size: 12px; color: var(--text-secondary); cursor: pointer;
+  text-align: left; transition: background 0.12s, color 0.12s;
+}
+.admin-row:hover { background: var(--bg-hover); color: var(--text-primary); }
+.admin-row svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-muted); }
+.admin-row:hover svg { color: var(--accent-light); }
+
 /* ── Session delete ── */
 .si-del {
   width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
@@ -759,6 +789,48 @@ body::before {
       <div class="no-sessions" id="no-sessions">No chats yet.<br>Ask a question to start.</div>
     </div>
 
+    <div class="sb-admin" id="sb-admin" style="display:none">
+      <button class="admin-toggle" id="admin-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span>Admin</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"/>
+        </svg>
+      </button>
+      <div class="admin-body">
+        <button class="admin-row" id="manage-topics-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h4l2-4h6l2 4h4a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
+          </svg>
+          Topics
+        </button>
+        <button class="admin-row" id="manage-users-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          Users
+        </button>
+        <button class="admin-row" id="browse-chats-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/>
+          </svg>
+          Browse Chats
+        </button>
+        <button class="admin-row" id="view-feedback-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+          </svg>
+          Feedback
+        </button>
+      </div>
+    </div>
+
     <div class="sb-user" id="sb-user" style="display:none">
       <div class="user-avatar" id="user-avatar">?</div>
       <div class="user-info">
@@ -766,30 +838,6 @@ body::before {
         <span class="role-badge user" id="role-badge">user</span>
       </div>
       <div class="user-actions">
-        <button class="icon-btn" id="manage-topics-btn" title="Manage topics" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 7h4l2-4h6l2 4h4a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="manage-users-btn" title="Manage users" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="browse-chats-btn" title="Browse all chats" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="view-feedback-btn" title="View user feedback" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
-          </svg>
-        </button>
         <button class="icon-btn" id="signout-btn" title="Sign out">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -1286,10 +1334,7 @@ function updateUserBar(username, role) {
   const badge = document.getElementById('role-badge');
   badge.textContent = role;
   badge.className = 'role-badge ' + (role === 'admin' ? 'admin' : 'user');
-  document.getElementById('manage-users-btn').style.display   = role === 'admin' ? 'flex' : 'none';
-  document.getElementById('manage-topics-btn').style.display  = role === 'admin' ? 'flex' : 'none';
-  document.getElementById('browse-chats-btn').style.display   = role === 'admin' ? 'flex' : 'none';
-  document.getElementById('view-feedback-btn').style.display  = role === 'admin' ? 'flex' : 'none';
+  document.getElementById('sb-admin').style.display = role === 'admin' ? 'block' : 'none';
 }
 
 document.getElementById('signout-btn').addEventListener('click', () => {
@@ -1349,7 +1394,6 @@ async function doLogin() {
 const usersModal = document.getElementById('users-modal');
 function showUsersModal() { loadUserList(); usersModal.classList.add('open'); }
 function hideUsersModal() { usersModal.classList.remove('open'); }
-document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
 document.getElementById('close-users-btn').addEventListener('click', hideUsersModal);
 
 async function loadUserList() {
@@ -1485,7 +1529,6 @@ function setTopic(topicId) {
 const topicsModal = document.getElementById('topics-modal');
 function showTopicsModal() { loadTopicsModal(); topicsModal.classList.add('open'); }
 function hideTopicsModal() { topicsModal.classList.remove('open'); }
-document.getElementById('manage-topics-btn').addEventListener('click', showTopicsModal);
 document.getElementById('close-topics-btn').addEventListener('click', hideTopicsModal);
 
 document.getElementById('create-topic-btn').addEventListener('click', createTopic);
@@ -1939,6 +1982,9 @@ function appendFeedbackBar(block, msgIdx, question, answer, existing) {
 const adminChatsModal    = document.getElementById('admin-chats-modal');
 const adminFeedbackModal = document.getElementById('admin-feedback-modal');
 
+document.getElementById('admin-toggle').addEventListener('click', () => document.getElementById('sb-admin').classList.toggle('open'));
+document.getElementById('manage-topics-btn').addEventListener('click', showTopicsModal);
+document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
 document.getElementById('browse-chats-btn').addEventListener('click', () => showAdminChatsModal());
 document.getElementById('close-admin-chats-btn').addEventListener('click', () => adminChatsModal.classList.remove('open'));
 document.getElementById('view-feedback-btn').addEventListener('click', () => showAdminFeedbackModal());
