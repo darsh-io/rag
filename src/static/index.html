@@ -1042,29 +1042,69 @@ body::before {
   </div>
 </div>
 
-<!-- Login modal -->
+<!-- Login / Register modal -->
 <div id="login-modal" class="modal-overlay">
   <div class="modal-card" style="max-width:360px">
-    <div class="modal-head">
-      <div class="modal-icon-box">🔒</div>
-      <div>
-        <p class="modal-title">Sign in to rewise</p>
-        <p class="modal-sub">Enter your username and password to continue.</p>
+
+    <!-- Sign-in panel -->
+    <div id="login-panel">
+      <div class="modal-head">
+        <div class="modal-icon-box">🔒</div>
+        <div>
+          <p class="modal-title">Sign in to rewise</p>
+          <p class="modal-sub">Enter your username and password to continue.</p>
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="text" id="login-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="password" id="login-pw-input" placeholder="Password" autocomplete="current-password" spellcheck="false">
+          <button class="reveal-btn" data-for="login-pw-input" type="button">👁</button>
+        </div>
+      </div>
+      <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="login-submit-btn">Sign in</button>
+      <div class="modal-footer">
+        <span class="modal-skip" id="show-register-btn">New student? Create an account →</span>
       </div>
     </div>
-    <div class="key-group">
-      <div class="key-input-row">
-        <input type="text" id="login-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
+
+    <!-- Register panel -->
+    <div id="register-panel" style="display:none">
+      <div class="modal-head">
+        <div class="modal-icon-box">✏️</div>
+        <div>
+          <p class="modal-title">Create your account</p>
+          <p class="modal-sub">Pick a username, password, and your class.</p>
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="text" id="reg-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="password" id="reg-pw-input" placeholder="Password (min 4 chars)" autocomplete="new-password" spellcheck="false">
+          <button class="reveal-btn" data-for="reg-pw-input" type="button">👁</button>
+        </div>
+      </div>
+      <div class="key-group">
+        <select id="reg-class-select" class="role-select" style="width:100%;padding:10px 12px">
+          <option value="">Loading classes…</option>
+        </select>
+      </div>
+      <div id="reg-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="reg-submit-btn">Create account</button>
+      <div class="modal-footer">
+        <span class="modal-skip" id="show-login-btn">← Back to sign in</span>
       </div>
     </div>
-    <div class="key-group">
-      <div class="key-input-row">
-        <input type="password" id="login-pw-input" placeholder="Password" autocomplete="current-password" spellcheck="false">
-        <button class="reveal-btn" data-for="login-pw-input" type="button">👁</button>
-      </div>
-    </div>
-    <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
-    <button class="save-btn" id="login-submit-btn">Sign in</button>
+
   </div>
 </div>
 
@@ -1354,10 +1394,74 @@ function showLoginModal() {
   document.getElementById('login-user-input').value='';
   document.getElementById('login-pw-input').value='';
   document.getElementById('login-error').style.display='none';
+  document.getElementById('login-panel').style.display='';
+  document.getElementById('register-panel').style.display='none';
   loginModal.classList.add('open');
   setTimeout(()=>document.getElementById('login-user-input').focus(),80);
 }
 function hideLoginModal() { loginModal.classList.remove('open'); }
+
+function showRegisterPanel() {
+  document.getElementById('login-panel').style.display='none';
+  document.getElementById('register-panel').style.display='';
+  document.getElementById('reg-user-input').value='';
+  document.getElementById('reg-pw-input').value='';
+  document.getElementById('reg-error').style.display='none';
+  loadRegisterClasses();
+  setTimeout(()=>document.getElementById('reg-user-input').focus(),80);
+}
+
+async function loadRegisterClasses() {
+  const sel=document.getElementById('reg-class-select');
+  sel.innerHTML='<option value="">Loading…</option>';
+  try {
+    const r=await fetch('/auth/classes');
+    const classes=r.ok?await r.json():[];
+    sel.innerHTML=classes.length
+      ?'<option value="">Choose your class…</option>'+classes.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')
+      :'<option value="">No classes available yet</option>';
+  } catch { sel.innerHTML='<option value="">Could not load classes</option>'; }
+}
+
+document.getElementById('show-register-btn').addEventListener('click', showRegisterPanel);
+document.getElementById('show-login-btn').addEventListener('click', ()=>{
+  document.getElementById('login-panel').style.display='';
+  document.getElementById('register-panel').style.display='none';
+  setTimeout(()=>document.getElementById('login-user-input').focus(),80);
+});
+document.getElementById('reg-submit-btn').addEventListener('click', doRegister);
+['reg-user-input','reg-pw-input'].forEach(id=>
+  document.getElementById(id).addEventListener('keydown', e=>{ if(e.key==='Enter') doRegister(); })
+);
+
+async function doRegister() {
+  const username=document.getElementById('reg-user-input').value.trim();
+  const password=document.getElementById('reg-pw-input').value;
+  const classId =document.getElementById('reg-class-select').value;
+  const err=document.getElementById('reg-error');
+  err.style.display='none';
+  if (!username) { err.textContent='Username is required.'; err.style.display='block'; return; }
+  if (password.length<4) { err.textContent='Password must be at least 4 characters.'; err.style.display='block'; return; }
+  if (!classId) { err.textContent='Please choose a class.'; err.style.display='block'; return; }
+  try {
+    const r=await fetch('/auth/register',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username, password, class_id:classId}),
+    });
+    if (!r.ok) {
+      const d=await r.json();
+      err.textContent=d.detail||'Registration failed.'; err.style.display='block'; return;
+    }
+    const data=await r.json();
+    storeToken(data.token);
+    storeUser({id:data.user.id, username:data.user.username, role:data.user.role});
+    hideLoginModal();
+    updateUserBar(data.user.username, data.user.role);
+    await afterLogin();
+  } catch {
+    err.textContent='Cannot reach server — is it running?'; err.style.display='block';
+  }
+}
 
 document.getElementById('login-submit-btn').addEventListener('click', doLogin);
 ['login-user-input','login-pw-input'].forEach(id=>
