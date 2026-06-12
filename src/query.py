@@ -50,7 +50,12 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
     # Sparse BM25 uses the original question — keyword matching works better on the real query
     filtered_data = get_filtered(collection, source_filter)
     if not filtered_data["ids"]:
-        msg = "No documents match this topic's sources." if source_filter else "No documents have been ingested yet."
+        msg = (
+            "This topic's files aren't loaded — documents are stored in memory and cleared on server restart. "
+            "Re-upload them in Admin → Topics."
+            if source_filter else
+            "No documents have been ingested yet. Upload files inside a topic to get started."
+        )
         raise ValueError(msg)
     sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=10)
 

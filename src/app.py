@@ -671,6 +671,8 @@ async def query_endpoint(request: Request, body: QueryRequest):
             top_k=body.top_k,
             source_filter=source_filter,
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -702,6 +704,8 @@ async def query_stream_endpoint(request: Request, body: QueryRequest):
             body.top_k,
             source_filter,
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
