@@ -313,7 +313,9 @@ async def lifespan(app: FastAPI):
         print("Auth disabled — set ADMIN_USERNAME and ADMIN_PASSWORD in .env to enable.")
 
     app.state.cfg        = _load_cfg()
-    app.state.collection = get_collection()
+    _chroma_dir = Path(__file__).parent.parent / "config" / "chroma"
+    _chroma_dir.mkdir(parents=True, exist_ok=True)
+    app.state.collection = get_collection(persist_dir=_chroma_dir)
     yield
 
 

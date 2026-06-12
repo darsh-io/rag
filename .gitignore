@@ -10,3 +10,4 @@ config/topics.json
 config/chats/
 config/.server_secret
 config/feedback.json
+config/chroma/

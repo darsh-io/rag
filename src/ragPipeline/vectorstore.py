@@ -3,9 +3,9 @@ from ragPipeline.chunk import chunk_file
 from ragPipeline.embeddings import getEmbeddings
 
 
-def get_collection(collection_name="documents"):
-    """Create an in-memory Chroma collection with cosine similarity space."""
-    client = chromadb.EphemeralClient()
+def get_collection(collection_name="documents", persist_dir=None):
+    """Open or create a Chroma collection. Persists to disk if persist_dir is given."""
+    client = chromadb.PersistentClient(path=str(persist_dir)) if persist_dir else chromadb.EphemeralClient()
     # hnsw:space must be set at creation time; changing it later has no effect
     return client.get_or_create_collection(name=collection_name, metadata={"hnsw:space": "cosine"})
 
