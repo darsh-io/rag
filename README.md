@@ -103,7 +103,7 @@ rewise builds every piece explicitly:
 | File ingestion | Upload directly inside each topic — no separate upload step |
 | Browse all chats | Filter every student's chat history by user or topic |
 | Feedback dashboard | See all student ratings and comments to spot confusing content |
-| User management | Create and delete accounts, assign admin or user roles |
+| User management | Create, deactivate, and delete accounts; assign student/teacher/supradmin roles |
 
 ### Security & Privacy
 
@@ -112,7 +112,7 @@ rewise builds every piece explicitly:
 | Authentication | JWT HS256 via `PyJWT`, 7-day expiry, ephemeral secret per process |
 | Passwords | `bcrypt.hashpw()` — no plaintext storage, no `passlib` |
 | Chat encryption | Fernet symmetric encryption per user; key derived via HKDF-SHA256 (server secret + username as salt) |
-| Role enforcement | FastAPI `Depends` chain: `_require_auth` → `_require_admin` |
+| Role enforcement | FastAPI `Depends` chain; 3 roles: `student`, `teacher`, `supradmin` |
 | Topic isolation | Source filter enforced server-side on both retrieval layers |
 
 ---
@@ -136,27 +136,40 @@ The top-10 fused candidates get re-scored by a cross-encoder that reads the ques
 ## File Structure
 
 ```
+serve.py                      # Entry point — python serve.py
+setup.py                      # First-run setup wizard
 src/
-├── app.py                    # FastAPI server — auth, topics, chats, feedback, ingest, query
+├── app.py                    # FastAPI app wiring + lifespan
+├── db.py                     # SQLite schema, migrations, connection helper
+├── deps.py                   # Auth dependencies (JWT decode, role guards)
+├── encryption.py             # Per-user Fernet encryption via HKDF
+├── config.py                 # Config loader (config.yaml + .env)
 ├── query.py                  # HyDE + full retrieval pipeline + streaming LLM calls
+├── routers/
+│   ├── auth.py               # Login, self-registration, /me
+│   ├── users.py              # Supradmin user CRUD
+│   ├── classes.py            # Class CRUD, teacher/student assignment
+│   ├── topics.py             # Topic CRUD per class
+│   ├── documents.py          # Document ingest + delete per topic
+│   ├── chats.py              # Chat creation, SSE streaming query, history
+│   └── feedback.py           # Per-message ratings and comments
 ├── static/
-│   └── index.html            # SPA — dark-theme UI, no JS framework
+│   ├── index.html            # SPA shell
+│   ├── app.js                # All frontend logic
+│   └── styles.css            # Dark-theme design system
 └── ragPipeline/
     ├── chunk.py              # Universal file chunker (20+ formats, vision for images)
     ├── embeddings.py         # OpenRouter embeddings client (raw requests)
-    ├── vectorstore.py        # Chroma: ingest, filtered query, source listing
+    ├── vectorstore.py        # Chroma PersistentClient: ingest, filtered query
     ├── bm25.py               # BM25Okapi sparse retrieval
     ├── rrf.py                # Reciprocal Rank Fusion
     ├── reranker.py           # Cohere Rerank v2 client
     └── cosineSim.py          # Pure Python cosine similarity (no numpy)
 config/
 ├── config.yaml               # Model names
-├── users.json                # Bcrypt-hashed credentials (gitignored)
-├── topics.json               # Topic definitions + source assignments (gitignored)
-├── feedback.json             # User ratings + comments (gitignored)
-├── .server_secret            # 32-byte HKDF master secret (gitignored)
-└── chats/
-    └── {username}.enc        # Fernet-encrypted per-user chat histories (gitignored)
+├── rewise.db                 # SQLite database (gitignored)
+├── chroma/                   # Persisted vector store (gitignored)
+└── .server_secret            # 32-byte HKDF master secret (gitignored)
 ```
 
 ---
@@ -169,7 +182,7 @@ config/
 | Frontend | Vanilla HTML/CSS/JS SPA |
 | Embeddings | OpenRouter → `text-embedding-3-small` (raw `requests`) |
 | LLM | OpenRouter → any model (streaming SSE) |
-| Vector store | ChromaDB `EphemeralClient` (in-memory, cosine) |
+| Vector store | ChromaDB `PersistentClient` (on-disk, cosine) |
 | Sparse retrieval | `rank-bm25` BM25Okapi |
 | Reranking | Cohere Rerank v2 |
 | Auth | PyJWT + bcrypt |
@@ -212,17 +225,16 @@ ADMIN_PASSWORD=your_secure_password
 Start the server:
 
 ```bash
-cd src
-uvicorn app:app --reload
+python serve.py
 ```
 
 Open `http://localhost:8000` and sign in.
 
 **Getting started:**
-1. Open Settings (⚙) and enter your API keys if not set via `.env`
-2. Click the Topics icon → create a topic (e.g. *"Chapter 1 — Forces"*)
-3. Upload documents directly into the topic
-4. Create student accounts via the Users icon
+1. Sign in as the admin account set in `.env`
+2. Go to **Admin → Classes** and create a class
+3. Go to **Admin → Topics** and create a topic, then upload documents into it
+4. Students self-register at the login screen — they pick their class on sign-up
 5. Students sign in, select a topic, and start asking
 
 ---

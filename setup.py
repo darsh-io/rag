@@ -4,7 +4,6 @@ rewise setup wizard.
 Run once: python setup.py
 """
 import os
-import platform
 import subprocess
 import sys
 from pathlib import Path
@@ -53,24 +52,6 @@ def main():
     print()
     print("  This will get you running in 3 steps.")
     print()
-
-    # ── Detect OS ────────────────────────────────────────────────────────────
-    system = platform.system()
-    os_names = {"Windows": "Windows", "Darwin": "Mac", "Linux": "Linux"}
-    detected = os_names.get(system, system)
-    is_windows = system == "Windows"
-
-    print(f"  Detected OS: {detected}")
-    change = ask("  Is that right? (y/n, default y): ", default="y")
-    if change.lower() == "n":
-        print()
-        print("  Pick your OS:")
-        print("    1. Windows")
-        print("    2. Mac")
-        print("    3. Linux")
-        print()
-        choice = ask("  Enter 1, 2, or 3: ", default="3")
-        is_windows = choice == "1"
 
     # ── Step 1: Install dependencies ─────────────────────────────────────────
     step(1, 3, "Install dependencies")
@@ -133,15 +114,9 @@ def main():
     # ── Step 3: Start the server ──────────────────────────────────────────────
     step(3, 3, "Start the server")
 
-    if is_windows:
-        print("  Run these two commands in your terminal:")
-        print()
-        print("    cd src")
-        print("    uvicorn app:app --reload")
-    else:
-        print("  Run this in your terminal:")
-        print()
-        print("    cd src && uvicorn app:app --reload")
+    print("  Run this in your terminal:")
+    print()
+    print("    python serve.py")
 
     print()
     go = ask("  Start it now in this window? (y/n, default y): ", default="y")
@@ -151,14 +126,11 @@ def main():
         print("  Starting… open  http://localhost:8000  in your browser.")
         print("  Press Ctrl+C to stop the server.")
         print()
-        run_cmd("uvicorn app:app --reload", cwd=ROOT / "src")
+        run_cmd(f'"{sys.executable}" serve.py')
     else:
         print("  Whenever you're ready, run:")
-        if is_windows:
-            print("    cd src")
-            print("    uvicorn app:app --reload")
-        else:
-            print("    cd src && uvicorn app:app --reload")
+        print()
+        print("    python serve.py")
         print()
         print("  Then open:  http://localhost:8000")
 
