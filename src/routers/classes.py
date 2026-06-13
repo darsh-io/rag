@@ -51,10 +51,17 @@ def update_class(class_id: str, body: CreateClass, caller: UserInToken = Depends
     return {"ok": True}
 
 
-@router.delete("/{class_id}")
-def delete_class(class_id: str, caller: UserInToken = Depends(_admin)):
+@router.patch("/{class_id}/deactivate")
+def deactivate_class(class_id: str, caller: UserInToken = Depends(_admin)):
     with get_db() as conn:
         conn.execute("UPDATE classes SET is_active=0 WHERE id=?", (class_id,))
+    return {"ok": True}
+
+
+@router.patch("/{class_id}/activate")
+def activate_class(class_id: str, caller: UserInToken = Depends(_admin)):
+    with get_db() as conn:
+        conn.execute("UPDATE classes SET is_active=1 WHERE id=?", (class_id,))
     return {"ok": True}
 
 

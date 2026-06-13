@@ -835,9 +835,13 @@ body::before {
 .cls-card { background:var(--bg-elevated); border:1px solid var(--border-faint); border-radius:var(--r-lg); padding:18px 20px; }
 .cls-card-hdr { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 .cls-card-name { font-size:14px; font-weight:600; color:var(--text-primary); flex:1; }
-.cls-card-del { width:26px; height:26px; border-radius:var(--r-xs); background:transparent; border:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:background 0.15s, color 0.15s; flex-shrink:0; }
+.cls-card-del, .cls-card-act { width:26px; height:26px; border-radius:var(--r-xs); background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s, color 0.15s; flex-shrink:0; }
+.cls-card-del { color:var(--text-muted); }
 .cls-card-del:hover { background:var(--red-bg); color:var(--red); }
-.cls-card-del svg { width:12px; height:12px; }
+.cls-card-act { color:var(--green); }
+.cls-card-act:hover { background:var(--green-bg); }
+.cls-card-del svg, .cls-card-act svg { width:14px; height:14px; }
+.cls-inactive-badge { font-size:10px; font-weight:600; letter-spacing:0.05em; color:var(--red); background:var(--red-bg); border:1px solid var(--red-border); border-radius:var(--r-xs); padding:2px 6px; }
 .cls-section-lbl { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:8px 0 5px; }
 .cls-members { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
 .cls-member-tag { display:inline-flex; align-items:center; gap:5px; background:var(--bg-raised); border:1px solid var(--border-soft); border-radius:99px; padding:2px 8px 2px 10px; font-size:11px; color:var(--text-secondary); }

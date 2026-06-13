@@ -1248,21 +1248,33 @@ async function renderClassCards(container) {
 
       const nameEl=mk('span','cls-card-name'); nameEl.textContent=cls.name;
 
-      const delBtn=mk('button','cls-card-del'); delBtn.title='Delete class';
+      if (!cls.is_active) { card.style.opacity='0.5'; card.style.pointerEvents='none'; const badge=mk('span','cls-inactive-badge'); badge.textContent='Inactive'; hdr.appendChild(badge); card.style.pointerEvents=''; }
 
-      delBtn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`;
+      const toggleBtn=mk('button', cls.is_active?'cls-card-del':'cls-card-act');
 
-      delBtn.addEventListener('click', async ()=>{
+      toggleBtn.title=cls.is_active?'Deactivate class':'Activate class';
 
-        if (!confirm(`Delete class "${cls.name}"?`)) return;
+      toggleBtn.innerHTML=cls.is_active
 
-        await fetch(`/classes/${cls.id}`,{method:'DELETE',headers:getHeaders()});
+        ?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`
+
+        :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`;
+
+      toggleBtn.addEventListener('click', async ()=>{
+
+        const action=cls.is_active?'deactivate':'activate';
+
+        if (cls.is_active && !confirm(`Deactivate class "${cls.name}"?
+
+Students will lose access until it is re-activated.`)) return;
+
+        await fetch(`/classes/${cls.id}/${action}`,{method:'PATCH',headers:getHeaders()});
 
         myClasses=await fetchClasses(); renderClassCards(container);
 
       });
 
-      hdr.append(nameEl, delBtn); card.appendChild(hdr);
+      hdr.append(nameEl, toggleBtn); card.appendChild(hdr);
 
       // teachers section
 
