@@ -853,3 +853,29 @@ body::before {
 .cls-add-btn:hover { background:var(--bg-hover); border-color:var(--border-mid); }
 .cls-empty { font-size:11.5px; color:var(--text-hint); font-style:italic; }
 
+
+/* ── Confirm dialog ── */
+.confirm-card { max-width: 340px; gap: 12px; }
+.confirm-icon-box {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--r-sm);
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--amber); align-self: center;
+}
+.confirm-icon-box svg { width: 18px; height: 18px; display: block; }
+.confirm-title { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center; line-height: 1.4; }
+.confirm-body  { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.6; margin-top: -4px; }
+.confirm-body:empty { display: none; }
+.confirm-actions { display: flex; gap: 8px; margin-top: 4px; }
+.confirm-cancel {
+  flex: 1; padding: 9px; border-radius: var(--r-sm); font-family: inherit; font-size: 13px; font-weight: 500;
+  background: var(--bg-overlay); border: 1px solid var(--border-soft); color: var(--text-secondary); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.confirm-cancel:hover { background: var(--bg-raised); color: var(--text-primary); }
+.confirm-ok {
+  flex: 1; padding: 9px; border-radius: var(--r-sm); font-family: inherit; font-size: 13px; font-weight: 600;
+  background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.confirm-ok:hover { background: rgba(248,113,113,0.18); box-shadow: 0 0 0 3px rgba(248,113,113,0.12); }

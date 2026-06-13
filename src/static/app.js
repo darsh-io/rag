@@ -1,6 +1,31 @@
 'use strict';
 
-
+/* ── Confirm dialog ── */
+function showConfirm(msg, okLabel='Confirm') {
+  return new Promise(resolve => {
+    const [title, body=''] = msg.split('\n\n');
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-body').textContent  = body;
+    document.getElementById('confirm-ok').textContent    = okLabel;
+    const overlay = document.getElementById('confirm-modal');
+    overlay.classList.add('open');
+    const ok  = document.getElementById('confirm-ok');
+    const can = document.getElementById('confirm-cancel');
+    function done(v) {
+      overlay.classList.remove('open');
+      ok.removeEventListener('click', onOk);
+      can.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onBg);
+      resolve(v);
+    }
+    function onOk()     { done(true);  }
+    function onCancel() { done(false); }
+    function onBg(e)    { if (e.target===overlay) done(false); }
+    ok.addEventListener('click', onOk);
+    can.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onBg);
+  });
+}
 
 /* ── Storage helpers ── */
 
@@ -160,7 +185,7 @@ function renderSessions() {
 
       e.stopPropagation();
 
-      if (!confirm('Delete this chat?')) return;
+      if (!await showConfirm('Delete this chat?', 'Delete')) return;
 
       await deleteSessionRemote(s.id);
 
@@ -778,9 +803,9 @@ async function loadUserList() {
         });
 
         el.querySelector('.ur-del').addEventListener('click', async ()=>{
-          if (!confirm(`Permanently delete "${u.username}"?
+          if (!await showConfirm(`Permanently delete "${u.username}"?
 
-This cannot be undone. Their chats and enrollment history will be erased.`)) return;
+This cannot be undone. Their chats and enrollment history will be erased.`, 'Delete')) return;
           await fetch(`/users/${u.id}`,{method:'DELETE',headers:getHeaders()});
           loadUserList();
         });
@@ -1037,7 +1062,7 @@ function renderTopicCards(container) {
 
     delBtn.addEventListener('click', async ()=>{
 
-      if (!confirm(`Delete topic "${topic.name}"?`)) return;
+      if (!await showConfirm(`Delete topic "${topic.name}"?`, 'Delete')) return;
 
       await fetch(`/classes/${currentClassId}/topics/${topic.id}`,{method:'DELETE',headers:getHeaders()});
 
@@ -1111,7 +1136,7 @@ async function loadDocumentTags(filesWrap, topicId) {
 
         e.stopPropagation();
 
-        if (!confirm(`Delete "${doc.filename}"?`)) return;
+        if (!await showConfirm(`Delete "${doc.filename}"?`, 'Delete')) return;
 
         await fetch(`/classes/${currentClassId}/topics/${topicId}/documents/${doc.id}`,{method:'DELETE',headers:getHeaders()});
 
@@ -1269,9 +1294,9 @@ async function renderClassCards(container) {
 
         const action=cls.is_active?'deactivate':'activate';
 
-        if (cls.is_active && !confirm(`Deactivate class "${cls.name}"?
+        if (cls.is_active && !await showConfirm(`Deactivate class "${cls.name}"?
 
-Students will lose access until it is re-activated.`)) return;
+Students will lose access until it is re-activated.`, 'Deactivate')) return;
 
         await fetch(`/classes/${cls.id}/${action}`,{method:'PATCH',headers:getHeaders()});
 
