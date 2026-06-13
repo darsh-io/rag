@@ -12,3 +12,4 @@ config/.server_secret
 config/feedback.json
 config/chroma/
 config/rewise.db
+CLAUDE.md
