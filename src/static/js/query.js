@@ -62,6 +62,42 @@ function setLocked(v) {
   }
 }
 
+/* ── Source helpers ── */
+
+function cleanSourceName(raw) {
+  return raw.replace(/_topic[0-9a-f]{8}$/i, '');
+}
+
+function renderSourceList(sources, container, prefix) {
+  sources.forEach((s, i) => {
+    const item = mk('div', 'sl-item');
+    item.id = `${prefix}-${i}`;
+    const name = cleanSourceName(s.source);
+    const pct  = Math.round(s.relevance * 100);
+    item.innerHTML =
+      `<span class="sl-num">${i+1}</span>` +
+      `<div class="sl-info">` +
+        `<div class="sl-name" title="${esc(s.source)}">${esc(name)}</div>` +
+        `<div class="sl-meta">Page ${s.page} · ${pct}% relevance</div>` +
+      `</div>`;
+    container.appendChild(item);
+  });
+}
+
+function injectCiteButtons(html, sources, prefix) {
+  const srcMap = {};
+  sources.forEach((s, i) => {
+    const key = `${s.source.trim()}|${String(s.page).trim()}`;
+    if (srcMap[key] === undefined) srcMap[key] = i;
+  });
+  return html.replace(/\[Source:\s*([^\],]+?)(?:,\s*|\s*\|\s*)Page:\s*(\d+)\]/g, (_, src, pg) => {
+    const key = `${src.trim()}|${pg.trim()}`;
+    const i   = srcMap[key];
+    if (i === undefined) return '';
+    return `<sup><button class="cite-btn" onclick="document.getElementById('${prefix}-${i}').scrollIntoView({behavior:'smooth',block:'nearest'})">${i+1}</button></sup>`;
+  });
+}
+
 /* ── Submit query ── */
 
 async function submitQuery() {
@@ -90,20 +126,21 @@ async function submitQuery() {
   const qb        = mk('div','q-bubble'); qb.textContent=question;
   const {wrap:pipWrap, els:pipEls} = makePipeline();
   setPipActive(pipEls, pipWrap, 'hypothesis');
-  const srcSec    = mk('div'); srcSec.style.display='none';
-  const srcGrid   = mk('div','source-grid');
-  srcSec.append(lbl('Sources used'), srcGrid);
   const thinkWrap = mk('div','thinking-wrap');
   [72,58,40].forEach((w,i) => { const l=mk('div','shimmer-line'); l.style.cssText=`width:${w}%;animation-delay:${i*0.18}s`; thinkWrap.appendChild(l); });
   const ansSec    = mk('div'); ansSec.style.display='none';
-  const ansText   = mk('div','answer-text');
+  const ansText   = mk('div','answer-text prose');
   const cursor    = mk('span','cursor');
   ansSec.appendChild(ansText);
-  block.append(qb, pipWrap, srcSec, thinkWrap, ansSec);
+  const srcSec    = mk('div'); srcSec.style.display='none';
+  const srcList   = mk('div','src-list');
+  srcSec.append(lbl('Sources'), srcList);
+  block.append(qb, pipWrap, thinkWrap, ansSec, srcSec);
   inner.appendChild(block);
   scrollEnd();
 
-  let collAnswer='', collSources=[], collHyde='', asstMsgId=null;
+  const prefix = 'sr-' + Date.now();
+  let collAnswer='', collSources=[], asstMsgId=null;
 
   try {
     const res = await fetch(`/chats/${currentChatId}/query/stream`, {
@@ -129,28 +166,22 @@ async function submitQuery() {
       for (const part of parts) {
         if (!part.startsWith('data: ')) continue;
         let evt; try { evt=JSON.parse(part.slice(6)); } catch { continue; }
+
         if (evt.type==='hyde') {
-          collHyde=evt.text; setPipActive(pipEls,pipWrap,'sources');
+          setPipActive(pipEls,pipWrap,'sources');
+
         } else if (evt.type==='sources') {
           collSources=evt.sources;
-          thinkWrap.remove(); srcSec.style.display='block';
+          thinkWrap.remove();
           ansSec.style.display='block'; ansText.appendChild(cursor);
           setPipActive(pipEls,pipWrap,'answering');
-          evt.sources.forEach((s,i) => {
-            const pct  = Math.round(s.relevance*100);
-            const card = mk('div','source-card'); card.style.animationDelay=(i*0.06)+'s';
-            card.innerHTML=`<div class="sc-top"><span class="sc-rank">Source ${i+1}</span><span class="sc-pct">${pct}%</span></div>
-              <div class="sc-name" title="${esc(s.source)}">${esc(s.source)}</div>
-              <div class="sc-page">Page ${s.page}</div>
-              <div class="rel-track"><div class="rel-fill"></div></div>`;
-            srcGrid.appendChild(card);
-            requestAnimationFrame(() => { card.querySelector('.rel-fill').style.width=pct+'%'; });
-          });
           scrollEnd();
+
         } else if (evt.type==='delta') {
           collAnswer += evt.text;
           ansText.insertBefore(document.createTextNode(evt.text), cursor);
           scrollEnd();
+
         } else if (evt.type==='error') {
           if (thinkWrap.parentNode) thinkWrap.remove();
           cursor.remove();
@@ -158,11 +189,25 @@ async function submitQuery() {
           const errPrefix = ansText.textContent ? '\n\n' : '';
           ansText.appendChild(document.createTextNode(`${errPrefix}⚠ ${evt.message}`));
           setPipDone(pipEls,pipWrap);
+
         } else if (evt.type==='done') {
-          cursor.remove(); setPipDone(pipEls,pipWrap);
+          cursor.remove();
+          // Render answer as markdown and inject inline cite buttons
+          if (collAnswer.trim()) {
+            let html = marked.parse(collAnswer, {breaks:false, gfm:true});
+            html = injectCiteButtons(html, collSources, prefix);
+            ansText.innerHTML = html;
+          }
+          // Render source list below the answer
+          if (collSources.length) {
+            renderSourceList(collSources, srcList, prefix);
+            srcSec.style.display='block';
+          }
+          setPipDone(pipEls,pipWrap);
           asstMsgId = evt.message_id;
           if (asstMsgId) appendFeedbackBar(block, currentChatId, asstMsgId, null);
           await fetchSessions();
+          scrollEnd();
         }
       }
     }

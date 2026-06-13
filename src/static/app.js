@@ -88,23 +88,34 @@ function renderHistory(messages) {
     const qb = mk('div','q-bubble'); qb.textContent=um.content; block.appendChild(qb);
     if (am) {
       const sources = am.sources_json ? JSON.parse(am.sources_json) : [];
-      if (sources.length) {
-        const sw = mk('div');
-        sw.append(lbl('Sources used'));
-        const sg = mk('div','source-grid');
-        sources.forEach((s,idx) => {
-          const pct = Math.round(s.relevance*100);
-          const c   = mk('div','source-card'); c.style.animation='none';
-          c.innerHTML=`<div class="sc-top"><span class="sc-rank">Source ${idx+1}</span><span class="sc-pct">${pct}%</span></div>
-            <div class="sc-name" title="${esc(s.source)}">${esc(s.source)}</div>
-            <div class="sc-page">Page ${s.page}</div>
-            <div class="rel-track"><div class="rel-fill" style="width:${pct}%;transition:none"></div></div>`;
-          sg.appendChild(c);
+      const at = mk('div','answer-text prose');
+      if (am.content) {
+        const prefix = 'hr-' + am.id;
+        const srcMap = {};
+        sources.forEach((s, i) => { srcMap[`${s.source.trim()}|${String(s.page).trim()}`] = i; });
+        let html = marked.parse(am.content, {breaks:false, gfm:true});
+        html = html.replace(/\[Source:\s*([^\],]+?)(?:,\s*|\s*\|\s*)Page:\s*(\d+)\]/g, (_, src, pg) => {
+          const key = `${src.trim()}|${pg.trim()}`;
+          const i   = srcMap[key];
+          if (i === undefined) return '';
+          return `<sup><button class="cite-btn" onclick="document.getElementById('${prefix}-${i}').scrollIntoView({behavior:'smooth',block:'nearest'})">${i+1}</button></sup>`;
         });
-        sw.appendChild(sg); block.appendChild(sw);
+        at.innerHTML = html;
       }
-      const at = mk('div','answer-text'); at.textContent=am.content;
       block.appendChild(at);
+      if (sources.length) {
+        const prefix = 'hr-' + am.id;
+        const sw = mk('div');
+        sw.append(lbl('Sources'));
+        const sl = mk('div','src-list');
+        sources.forEach((s, idx) => {
+          const item = mk('div','sl-item'); item.id = `${prefix}-${idx}`;
+          const name = s.source.replace(/_topic[0-9a-f]{8}$/i, '');
+          item.innerHTML = `<span class="sl-num">${idx+1}</span><div class="sl-info"><div class="sl-name" title="${esc(s.source)}">${esc(name)}</div><div class="sl-meta">Page ${s.page} · ${Math.round(s.relevance*100)}% relevance</div></div>`;
+          sl.appendChild(item);
+        });
+        sw.appendChild(sl); block.appendChild(sw);
+      }
       const existing = am.feedback_rating ? {rating:am.feedback_rating, comment:am.feedback_comment} : null;
       appendFeedbackBar(block, currentChatId, am.id, existing);
     }
