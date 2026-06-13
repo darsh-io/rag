@@ -182,6 +182,10 @@ def query_stream(
 
         answer_text = "".join(full_answer)
 
+        if not answer_text.strip():
+            yield f"data: {json.dumps({'type': 'error', 'message': 'The model returned an empty response. The context may be too long, or the model hit a rate limit.'})}\n\n"
+            return
+
         # persist both turns
         ts = now()
         user_msg_id = new_id()

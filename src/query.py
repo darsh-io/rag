@@ -111,9 +111,15 @@ def call_llm_stream(messages, api_key, chat_url, llm_model):
         if payload == "[DONE]":
             break
         try:
-            delta = json.loads(payload)["choices"][0]["delta"].get("content") or ""
-            if delta:
-                yield delta
+            chunk = json.loads(payload)
+            if "error" in chunk:
+                raise RuntimeError(f"OpenRouter: {chunk['error'].get('message', str(chunk['error']))}")
+            d = chunk["choices"][0]["delta"]
+            text = d.get("content") or d.get("reasoning_content") or d.get("reasoning") or ""
+            if text:
+                yield text
+        except RuntimeError:
+            raise
         except (json.JSONDecodeError, KeyError, IndexError):
             continue
 

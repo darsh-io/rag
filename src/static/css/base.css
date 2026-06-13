@@ -1,0 +1,168 @@
+/* ── Variables ── */
+:root {
+  --bg:           #010912;
+  --bg-elevated:  #040f22;
+  --bg-raised:    #071428;
+  --bg-overlay:   #0b1d38;
+  --bg-hover:     rgba(59,130,246,0.07);
+  --bg-active:    rgba(59,130,246,0.12);
+
+  --border-faint: rgba(59,130,246,0.07);
+  --border-soft:  rgba(59,130,246,0.15);
+  --border-mid:   rgba(59,130,246,0.26);
+
+  --text-primary:   #dbeafe;
+  --text-secondary: #7ea5d0;
+  --text-muted:     #3b5a82;
+  --text-hint:      #1a2f4e;
+
+  --accent:       #3b82f6;
+  --accent-light: #60a5fa;
+  --accent-deep:  #1d4ed8;
+  --accent-rgb:   59,130,246;
+
+  --green:        #34d399;
+  --green-bg:     rgba(52,211,153,0.08);
+  --green-border: rgba(52,211,153,0.2);
+  --red:          #f87171;
+  --red-bg:       rgba(248,113,113,0.08);
+  --red-border:   rgba(248,113,113,0.2);
+  --amber:        #fbbf24;
+
+  --r-xs: 4px; --r-sm: 8px; --r: 12px; --r-md: 14px; --r-lg: 18px; --r-xl: 22px;
+  --sidebar-w: 262px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv05" 1, "cv11" 1;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 900px 700px at 15% 15%, rgba(29,78,216,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 88% 85%, rgba(59,130,246,0.05) 0%, transparent 60%);
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.18); border-radius: 99px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.18) transparent; }
+
+/* ── Shared elements ── */
+.blk-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent)); color: #fff; border: none;
+  border-radius: var(--r-sm); padding: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  box-shadow: 0 2px 16px rgba(59,130,246,0.35); transition: box-shadow 0.15s, transform 0.12s;
+}
+.save-btn:hover { box-shadow: 0 4px 26px rgba(59,130,246,0.5); transform: translateY(-1px); }
+
+/* ── Role badges ── */
+.role-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; border-radius: 99px; padding: 1px 7px;
+}
+.role-badge.admin     { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25); color: var(--accent-light); }
+.role-badge.user      { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.2);  color: var(--green); }
+.role-badge.student   { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.2);  color: var(--green); }
+.role-badge.teacher   { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25); color: var(--accent-light); }
+.role-badge.supradmin { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.2);  color: var(--amber); }
+
+/* ── Modal base ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,5,16,0.82);
+  backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-card {
+  width: 100%; max-width: 400px; background: var(--bg-elevated);
+  border: 1px solid var(--border-soft); border-radius: var(--r-xl); padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(59,130,246,0.06);
+  animation: modalIn 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(10px);} to{opacity:1;transform:scale(1) translateY(0);} }
+.modal-head { display: flex; align-items: flex-start; gap: 12px; }
+.modal-icon-box {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--r-sm);
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+}
+.modal-icon-box svg { display: block; }
+.modal-title { font-size: 15px; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 2px; }
+.modal-sub   { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.modal-divider { height: 1px; background: var(--border-faint); }
+.modal-footer { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.modal-privacy { font-size: 11px; color: var(--text-hint); text-align: center; line-height: 1.55; }
+.modal-skip { font-size: 11px; color: var(--text-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s; }
+.modal-skip:hover { color: var(--text-secondary); }
+
+.key-group { display: flex; flex-direction: column; gap: 6px; }
+.key-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.key-lbl  { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.key-link { font-size: 11px; color: var(--accent-light); text-decoration: none; opacity: 0.9; transition: opacity 0.15s; }
+.key-link:hover { opacity: 1; text-decoration: underline; }
+.key-input-row { position: relative; }
+.key-input-row input {
+  width: 100%; background: var(--bg-overlay); border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm); padding: 9px 36px 9px 12px; color: var(--text-primary);
+  font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 12px; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.key-input-row input:focus { border-color: rgba(59,130,246,0.4); box-shadow: 0 0 0 3px rgba(59,130,246,0.09); }
+.key-input-row input::placeholder { color: var(--text-hint); letter-spacing: 0; }
+.reveal-btn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; padding: 3px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.reveal-btn:hover { color: var(--text-secondary); }
+.reveal-btn svg { display: block; }
+.key-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+#keys-error {
+  display: none; font-size: 12px; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--r-sm); padding: 8px 11px; line-height: 1.5;
+}
+
+/* ── Confirm dialog ── */
+.confirm-card { max-width: 340px; gap: 12px; }
+.confirm-icon-box {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--r-sm);
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--amber); align-self: center;
+}
+.confirm-icon-box svg { width: 18px; height: 18px; display: block; }
+.confirm-title { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center; line-height: 1.4; }
+.confirm-body  { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.6; margin-top: -4px; }
+.confirm-body:empty { display: none; }
+.confirm-actions { display: flex; gap: 8px; margin-top: 4px; }
+.confirm-cancel {
+  flex: 1; padding: 9px; border-radius: var(--r-sm); font-family: inherit; font-size: 13px; font-weight: 500;
+  background: var(--bg-overlay); border: 1px solid var(--border-soft); color: var(--text-secondary); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.confirm-cancel:hover { background: var(--bg-raised); color: var(--text-primary); }
+.confirm-ok {
+  flex: 1; padding: 9px; border-radius: var(--r-sm); font-family: inherit; font-size: 13px; font-weight: 600;
+  background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.confirm-ok:hover { background: rgba(248,113,113,0.18); box-shadow: 0 0 0 3px rgba(248,113,113,0.12); }
