@@ -22,16 +22,16 @@ The magic is in what happens between your question and the answer. Most AI tools
 ┌────────────────────────────────────────────────────────────────────┐
 │  INGEST                                                            │
 │                                                                    │
-│  File (PDF / DOCX / PPTX / image / …)                             │
+│  File (PDF / DOCX / PPTX / image / …)                              │
 │       │                                                            │
 │       ▼                                                            │
-│  chunk_file()  ──► sentence-aware overlapping chunks + metadata   │
+│  chunk_file()  ──► sentence-aware overlapping chunks + metadata    │
 │       │                                                            │
 │       ▼                                                            │
-│  getEmbeddings()  ──► OpenRouter text-embedding-3-small           │
+│  getEmbeddings()  ──► OpenRouter text-embedding-3-small            │
 │       │                                                            │
 │       ▼                                                            │
-│  Chroma EphemeralClient  ──► in-memory vector store (cosine)      │
+│  Chroma EphemeralClient  ──► in-memory vector store (cosine)       │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────────────────┐
@@ -40,24 +40,24 @@ The magic is in what happens between your question and the answer. Most AI tools
 │  User question                                                     │
 │       │                                                            │
 │       ▼                                                            │
-│  ① HyDE  ──► LLM writes a hypothetical answer to the question     │
+│  ① HyDE  ──► LLM writes a hypothetical answer to the question      │
 │              (embeds far richer than a short question alone)       │
 │       │                                                            │
-│       ├──────────────────────────────────────────────┐            │
-│       ▼                                              ▼            │
-│  ② Dense retrieval                        ③ Sparse retrieval     │
-│     Chroma cosine similarity                 BM25Okapi            │
-│     top-10 chunks                            top-10 chunks        │
-│       │                                              │            │
-│       └──────────────┬───────────────────────────────┘            │
+│       ├──────────────────────────────────────────────┐             │
+│       ▼                                              ▼             │
+│  ② Dense retrieval                        ③ Sparse retrieval       │
+│     Chroma cosine similarity                 BM25Okapi             │
+│     top-10 chunks                            top-10 chunks         │
+│       │                                              │             │
+│       └──────────────┬───────────────────────────────┘             │
 │                      ▼                                             │
-│  ④ Reciprocal Rank Fusion  ──► merged top-10                      │
+│  ④ Reciprocal Rank Fusion  ──► merged top-10                       │
 │                      │                                             │
 │                      ▼                                             │
-│  ⑤ Cohere Rerank v2  ──► top-5 by true semantic relevance        │
+│  ⑤ Cohere Rerank v2  ──► top-5 by true semantic relevance          │
 │                      │                                             │
 │                      ▼                                             │
-│  ⑥ LLM  ──► cited, grounded answer streamed token-by-token       │
+│  ⑥ LLM  ──► cited, grounded answer streamed token-by-token         │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
