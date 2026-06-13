@@ -1,316 +1,316 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>rewise</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-
-<div class="app">
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-
-    <div class="sb-header">
-      <div class="wordmark">
-        <div class="wm-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
-          </svg>
-        </div>
-        <span class="wm-text">rewise</span>
-      </div>
-      <button class="class-pill" id="class-pill" style="display:none" title="Switch class">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-        </svg>
-        <span class="cp-name" id="class-pill-name">â€”</span>
-        <svg class="cp-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <button class="new-chat-btn" id="new-chat-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        New Chat
-      </button>
-    </div>
-
-    <div class="sb-sessions" id="sessions-list">
-      <p class="sessions-lbl">Recent</p>
-      <div class="no-sessions" id="no-sessions">No conversations yet.</div>
-    </div>
-
-    <div class="sb-admin" id="sb-admin" style="display:none">
-      <button class="admin-toggle" id="admin-toggle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
-        <span>Admin</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="18 15 12 9 6 15"/>
-        </svg>
-      </button>
-      <div class="admin-body">
-        <button class="admin-row" id="manage-topics-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 7h4l2-4h6l2 4h4a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
-          </svg>
-          Topics
-        </button>
-        <button class="admin-row" id="manage-classes-btn" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-          Classes
-        </button>
-        <button class="admin-row" id="manage-users-btn" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-          </svg>
-          Users
-        </button>
-        <button class="admin-row" id="browse-chats-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/>
-          </svg>
-          Browse Chats
-        </button>
-        <button class="admin-row" id="view-feedback-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
-          </svg>
-          Feedback
-        </button>
-      </div>
-    </div>
-
-    <div class="sb-user" id="sb-user" style="display:none">
-      <div class="user-avatar" id="user-avatar">?</div>
-      <div class="user-info">
-        <div class="user-name" id="user-name-lbl">â€”</div>
-        <span class="role-badge user" id="role-badge">user</span>
-      </div>
-      <div class="user-actions">
-        <button class="icon-btn" id="signout-btn" title="Sign out">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="sb-footer">
-      <div class="topk-row">
-        <span class="topk-label" title="How many source passages to read before answering">Search depth</span>
-        <div class="topk-control">
-          <button class="topk-btn" id="topk-dec">âˆ’</button>
-          <div class="topk-val" id="topk-val">5</div>
-          <button class="topk-btn" id="topk-inc">+</button>
-        </div>
-      </div>
-      <div class="sb-footer-right">
-        <span id="conn-dot" class="conn-dot checking" title="Connectingâ€¦"></span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Main -->
-  <div class="main">
-    <div id="chat-view">
-      <div id="output">
-        <div id="empty-state">
-          <div class="es-orb">
-            <div class="es-center">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-              </svg>
-            </div>
-          </div>
-          <p class="es-title">What do you want to learn?</p>
-          <p class="es-body" id="es-body">Pick a topic below and ask your first question.</p>
-        </div>
-      </div>
-      <div id="input-area">
-        <div class="input-wrap" style="position:relative">
-          <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
-          <div class="input-composer">
-            <textarea id="question-input" placeholder="Ask anything about your study materialsâ€¦" rows="2"></textarea>
-            <div class="composer-footer">
-              <button class="topic-chip" id="topic-chip" style="display:none">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
-                <span class="tc-label">All material</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="cf-hint" id="send-hint"></div>
-              <button id="ask-btn">
-                <span id="ask-label">Ask</span>
-                <svg id="ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="admin-panel">
-      <div class="panel-hdr">
-        <button class="panel-back-btn" id="panel-back-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to chat
-        </button>
-        <span class="panel-title" id="panel-title"></span>
-      </div>
-      <div class="panel-body" id="panel-body"></div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Offline screen -->
-<div id="offline-screen">
-  <div class="offline-card">
-    <div class="offline-icon">âš¡</div>
-    <p class="offline-title">Server not running</p>
-    <p class="offline-sub">Start the local server first, then refresh this page.</p>
-    <div class="offline-steps">
-      <div class="offline-step"><span class="step-num">1</span><code>pip install -r requirements.txt</code></div>
-      <div class="offline-step"><span class="step-num">2</span><code>cd src &amp;&amp; uvicorn app:app</code></div>
-      <div class="offline-step"><span class="step-num">3</span><code>Open http://localhost:8000</code></div>
-    </div>
-    <button class="retry-btn" id="retry-btn">Retry connection</button>
-  </div>
-</div>
-
-<!-- Login / Register modal -->
-<div id="login-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:360px">
-
-    <!-- Sign-in panel -->
-    <div id="login-panel">
-      <div class="modal-head">
-        <div class="modal-icon-box">ðŸ”’</div>
-        <div>
-          <p class="modal-title">Sign in to rewise</p>
-          <p class="modal-sub">Enter your username and password to continue.</p>
-        </div>
-      </div>
-      <div class="key-group">
-        <div class="key-input-row">
-          <input type="text" id="login-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
-        </div>
-      </div>
-      <div class="key-group">
-        <div class="key-input-row">
-          <input type="password" id="login-pw-input" placeholder="Password" autocomplete="current-password" spellcheck="false">
-          <button class="reveal-btn" data-for="login-pw-input" type="button">ðŸ‘</button>
-        </div>
-      </div>
-      <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
-      <button class="save-btn" id="login-submit-btn">Sign in</button>
-      <div class="modal-footer">
-        <span class="modal-skip" id="show-register-btn">New student? Create an account â†’</span>
-      </div>
-    </div>
-
-    <!-- Register panel -->
-    <div id="register-panel" style="display:none">
-      <div class="modal-head">
-        <div class="modal-icon-box">âœï¸</div>
-        <div>
-          <p class="modal-title">Create your account</p>
-          <p class="modal-sub">Pick a username, password, and your class.</p>
-        </div>
-      </div>
-      <div class="key-group">
-        <div class="key-input-row">
-          <input type="text" id="reg-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
-        </div>
-      </div>
-      <div class="key-group">
-        <div class="key-input-row">
-          <input type="password" id="reg-pw-input" placeholder="Password (min 4 chars)" autocomplete="new-password" spellcheck="false">
-          <button class="reveal-btn" data-for="reg-pw-input" type="button">ðŸ‘</button>
-        </div>
-      </div>
-      <div class="key-group">
-        <select id="reg-class-select" class="role-select" style="width:100%;padding:10px 12px">
-          <option value="">Loading classesâ€¦</option>
-        </select>
-      </div>
-      <div id="reg-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
-      <button class="save-btn" id="reg-submit-btn">Create account</button>
-      <div class="modal-footer">
-        <span class="modal-skip" id="show-login-btn">â† Back to sign in</span>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Users modal (admin only) -->
-<div id="users-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:420px">
-    <div class="modal-head">
-      <div class="modal-icon-box">ðŸ‘¥</div>
-      <div>
-        <p class="modal-title">User Management</p>
-        <p class="modal-sub">Manage student and teacher accounts.</p>
-      </div>
-    </div>
-    <div class="user-list" id="user-list"></div>
-    <div class="modal-divider"></div>
-    <div class="add-user-form">
-      <p class="blk-label" style="margin-bottom:0">Add user</p>
-      <div class="key-input-row">
-        <input type="text" id="new-user-username" placeholder="Username" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="form-row-2">
-        <div class="key-input-row">
-          <input type="password" id="new-user-password" placeholder="Password" autocomplete="new-password">
-          <button class="reveal-btn" data-for="new-user-password" type="button">ðŸ‘</button>
-        </div>
-        <select class="role-select" id="new-user-role">
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
-          <option value="supradmin">Supradmin</option>
-        </select>
-      </div>
-      <div id="add-user-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
-      <button class="save-btn" id="add-user-btn">Add user</button>
-    </div>
-    <div class="modal-footer">
-      <span class="modal-skip" id="close-users-btn">Close</span>
-    </div>
-  </div>
-</div>
-
-<!-- Class picker modal -->
-<div id="class-picker-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:400px">
-    <div class="modal-head">
-      <div class="modal-icon-box">ðŸ«</div>
-      <div>
-        <p class="modal-title">Choose a class</p>
-        <p class="modal-sub" id="class-picker-sub">Select the class you want to work in.</p>
-      </div>
-    </div>
-    <div class="class-list" id="class-picker-list"></div>
-  </div>
-</div>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rewise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <div class="sb-header">
+      <div class="wordmark">
+        <div class="wm-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+          </svg>
+        </div>
+        <span class="wm-text">rewise</span>
+      </div>
+      <button class="class-pill" id="class-pill" style="display:none" title="Switch class">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+        <span class="cp-name" id="class-pill-name">—</span>
+        <svg class="cp-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="new-chat-btn" id="new-chat-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Chat
+      </button>
+    </div>
+
+    <div class="sb-sessions" id="sessions-list">
+      <p class="sessions-lbl">Recent</p>
+      <div class="no-sessions" id="no-sessions">No conversations yet.</div>
+    </div>
+
+    <div class="sb-admin" id="sb-admin" style="display:none">
+      <button class="admin-toggle" id="admin-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span>Admin</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"/>
+        </svg>
+      </button>
+      <div class="admin-body">
+        <button class="admin-row" id="manage-topics-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h4l2-4h6l2 4h4a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
+          </svg>
+          Topics
+        </button>
+        <button class="admin-row" id="manage-classes-btn" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+          Classes
+        </button>
+        <button class="admin-row" id="manage-users-btn" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          Users
+        </button>
+        <button class="admin-row" id="browse-chats-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/>
+          </svg>
+          Browse Chats
+        </button>
+        <button class="admin-row" id="view-feedback-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+          </svg>
+          Feedback
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-user" id="sb-user" style="display:none">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name-lbl">—</div>
+        <span class="role-badge user" id="role-badge">user</span>
+      </div>
+      <div class="user-actions">
+        <button class="icon-btn" id="signout-btn" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="topk-row">
+        <span class="topk-label" title="How many source passages to read before answering">Search depth</span>
+        <div class="topk-control">
+          <button class="topk-btn" id="topk-dec">−</button>
+          <div class="topk-val" id="topk-val">5</div>
+          <button class="topk-btn" id="topk-inc">+</button>
+        </div>
+      </div>
+      <div class="sb-footer-right">
+        <span id="conn-dot" class="conn-dot checking" title="Connecting…"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div id="chat-view">
+      <div id="output">
+        <div id="empty-state">
+          <div class="es-orb">
+            <div class="es-center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="es-title">What do you want to learn?</p>
+          <p class="es-body" id="es-body">Pick a topic below and ask your first question.</p>
+        </div>
+      </div>
+      <div id="input-area">
+        <div class="input-wrap" style="position:relative">
+          <div class="topic-dropdown" id="topic-dropdown" style="display:none"></div>
+          <div class="input-composer">
+            <textarea id="question-input" placeholder="Ask anything about your study materials…" rows="2"></textarea>
+            <div class="composer-footer">
+              <button class="topic-chip" id="topic-chip" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M15 15l5 5"/></svg>
+                <span class="tc-label">All material</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="cf-hint" id="send-hint"></div>
+              <button id="ask-btn">
+                <span id="ask-label">Ask</span>
+                <svg id="ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="admin-panel">
+      <div class="panel-hdr">
+        <button class="panel-back-btn" id="panel-back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to chat
+        </button>
+        <span class="panel-title" id="panel-title"></span>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Offline screen -->
+<div id="offline-screen">
+  <div class="offline-card">
+    <div class="offline-icon">⚡</div>
+    <p class="offline-title">Server not running</p>
+    <p class="offline-sub">Start the local server first, then refresh this page.</p>
+    <div class="offline-steps">
+      <div class="offline-step"><span class="step-num">1</span><code>pip install -r requirements.txt</code></div>
+      <div class="offline-step"><span class="step-num">2</span><code>cd src &amp;&amp; uvicorn app:app</code></div>
+      <div class="offline-step"><span class="step-num">3</span><code>Open http://localhost:8000</code></div>
+    </div>
+    <button class="retry-btn" id="retry-btn">Retry connection</button>
+  </div>
+</div>
+
+<!-- Login / Register modal -->
+<div id="login-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:360px">
+
+    <!-- Sign-in panel -->
+    <div id="login-panel">
+      <div class="modal-head">
+        <div class="modal-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div>
+          <p class="modal-title">Sign in to rewise</p>
+          <p class="modal-sub">Enter your username and password to continue.</p>
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="text" id="login-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="password" id="login-pw-input" placeholder="Password" autocomplete="current-password" spellcheck="false">
+          <button class="reveal-btn" data-for="login-pw-input" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+      <div id="login-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="login-submit-btn">Sign in</button>
+      <div class="modal-footer">
+        <span class="modal-skip" id="show-register-btn">New student? Create an account →</span>
+      </div>
+    </div>
+
+    <!-- Register panel -->
+    <div id="register-panel" style="display:none">
+      <div class="modal-head">
+        <div class="modal-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+        <div>
+          <p class="modal-title">Create your account</p>
+          <p class="modal-sub">Pick a username, password, and your class.</p>
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="text" id="reg-user-input" placeholder="Username" autocomplete="username" spellcheck="false">
+        </div>
+      </div>
+      <div class="key-group">
+        <div class="key-input-row">
+          <input type="password" id="reg-pw-input" placeholder="Password (min 4 chars)" autocomplete="new-password" spellcheck="false">
+          <button class="reveal-btn" data-for="reg-pw-input" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+      <div class="key-group">
+        <select id="reg-class-select" class="role-select" style="width:100%;padding:10px 12px">
+          <option value="">Loading classes…</option>
+        </select>
+      </div>
+      <div id="reg-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="reg-submit-btn">Create account</button>
+      <div class="modal-footer">
+        <span class="modal-skip" id="show-login-btn">← Back to sign in</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Users modal (admin only) -->
+<div id="users-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <div>
+        <p class="modal-title">User Management</p>
+        <p class="modal-sub">Manage student and teacher accounts.</p>
+      </div>
+    </div>
+    <div class="user-list" id="user-list"></div>
+    <div class="modal-divider"></div>
+    <div class="add-user-form">
+      <p class="blk-label" style="margin-bottom:0">Add user</p>
+      <div class="key-input-row">
+        <input type="text" id="new-user-username" placeholder="Username" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-row-2">
+        <div class="key-input-row">
+          <input type="password" id="new-user-password" placeholder="Password" autocomplete="new-password">
+          <button class="reveal-btn" data-for="new-user-password" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <select class="role-select" id="new-user-role">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="supradmin">Supradmin</option>
+        </select>
+      </div>
+      <div id="add-user-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 11px;line-height:1.5"></div>
+      <button class="save-btn" id="add-user-btn">Add user</button>
+    </div>
+    <div class="modal-footer">
+      <span class="modal-skip" id="close-users-btn">Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- Class picker modal -->
+<div id="class-picker-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+      <div>
+        <p class="modal-title">Choose a class</p>
+        <p class="modal-sub" id="class-picker-sub">Select the class you want to work in.</p>
+      </div>
+    </div>
+    <div class="class-list" id="class-picker-list"></div>
+  </div>
+</div>
+
 <script src="/static/app.js"></script>
 </body>
 </html>

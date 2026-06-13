@@ -379,10 +379,12 @@ body::before {
 @keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(10px);} to{opacity:1;transform:scale(1) translateY(0);} }
 .modal-head { display: flex; align-items: flex-start; gap: 12px; }
 .modal-icon-box {
-  width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--r-sm);
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--r-sm);
   background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
 }
+.modal-icon-box svg { display: block; }
 .modal-title { font-size: 15px; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 2px; }
 .modal-sub   { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
 .key-group { display: flex; flex-direction: column; gap: 6px; }
@@ -401,9 +403,11 @@ body::before {
 .key-input-row input::placeholder { color: var(--text-hint); letter-spacing: 0; }
 .reveal-btn {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer; font-size: 12px; padding: 3px; color: var(--text-muted); line-height: 1;
+  background: none; border: none; cursor: pointer; padding: 3px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; line-height: 1;
 }
 .reveal-btn:hover { color: var(--text-secondary); }
+.reveal-btn svg { display: block; }
 .key-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
 #keys-error {
   display: none; font-size: 12px; color: var(--red);
