@@ -363,3 +363,82 @@
 .panel-back-btn svg { width: 12px; height: 12px; }
 .panel-title { font-size: 15px; font-weight: 600; letter-spacing: -0.025em; flex: 1; }
 .panel-body  { flex: 1; overflow-y: auto; padding: 28px 36px; }
+
+/* ── Sidebar overlay (mobile) ── */
+#sidebar-overlay {
+  display: none; position: fixed; inset: 0; z-index: 299;
+  background: rgba(0,5,16,0.65); backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#sidebar-overlay.open { display: block; }
+
+/* ── Mobile header (hidden on desktop) ── */
+.mobile-header { display: none; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 640px) {
+
+  /* Sidebar becomes a fixed left drawer */
+  .sidebar {
+    position: fixed; inset: 0 auto 0 0; z-index: 300;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: none;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 6px 0 48px rgba(0,0,0,0.65);
+  }
+
+  /* Mobile top bar */
+  .mobile-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; flex-shrink: 0;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .mh-menu-btn {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: transparent; border: 1px solid var(--border-soft);
+    border-radius: var(--r-sm); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mh-menu-btn svg { width: 16px; height: 16px; }
+  .mh-brand {
+    font-size: 15px; font-weight: 700; letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+  .mh-class {
+    margin-left: auto; font-size: 11px; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;
+  }
+
+  /* Content area */
+  #output { padding-top: 18px; padding-bottom: 14px; }
+  .output-inner { padding: 0 14px; gap: 28px; }
+  #input-area { padding: 10px 12px 20px; }
+
+  /* Admin panel */
+  .panel-hdr { padding: 12px 16px; }
+  .panel-body { padding: 16px; }
+
+  /* Chat bubbles */
+  .q-bubble { max-width: 85%; font-size: 13.5px; }
+
+  /* Hide keyboard shortcut hint — not relevant on touch */
+  .cf-hint { display: none; }
+
+  /* Topic dropdown — full width on mobile */
+  .topic-dropdown { left: 0; right: 0; max-width: none; min-width: 0; }
+
+  /* Increase tap targets for common buttons */
+  .session-item { padding: 10px 10px; min-height: 44px; }
+  .admin-row    { padding: 10px 10px; min-height: 44px; }
+  .new-chat-btn { padding: 11px 12px; min-height: 44px; }
+  .si-del { width: 28px; height: 28px; opacity: 1; }
+
+  /* Answer text slightly smaller on small screens */
+  .answer-text { font-size: 13.5px; }
+}

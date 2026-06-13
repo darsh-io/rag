@@ -55,7 +55,7 @@ function renderSessions() {
       if (!await showConfirm('Delete this chat?', 'Delete')) return;
       await deleteSessionRemote(s.id);
     });
-    el.addEventListener('click', () => loadSessionById(s.id));
+    el.addEventListener('click', () => { closeMobileSidebar(); loadSessionById(s.id); });
     list.appendChild(el);
   });
 }
@@ -206,6 +206,8 @@ async function selectClass(classId) {
   const pill = document.getElementById('class-pill');
   document.getElementById('class-pill-name').textContent = cls?.name || '—';
   pill.style.display = 'flex';
+  const mhClass = document.getElementById('mh-class-name');
+  if (mhClass) mhClass.textContent = cls?.name || '';
   currentChatId=null; currentTopicId=null;
   clearOutput();
   await Promise.all([fetchTopics(), fetchSessions()]);
@@ -387,9 +389,23 @@ function renderTopicDropdown() {
 
 function setTopic(topicId) { currentTopicId=topicId; renderTopicChip(); }
 
+/* ── Mobile sidebar ── */
+
+function openMobileSidebar() {
+  document.querySelector('.sidebar').classList.add('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+}
+function closeMobileSidebar() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+document.getElementById('mobile-menu-btn').addEventListener('click', openMobileSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeMobileSidebar);
+
 /* ── New chat / output helpers ── */
 
 document.getElementById('new-chat-btn').addEventListener('click', () => {
+  closeMobileSidebar();
   currentChatId=null; currentTopicId=null;
   renderTopicChip(); renderSessions(); clearOutput();
 });
@@ -432,11 +448,11 @@ function hideAdminPanel() {
 }
 
 document.getElementById('admin-toggle').addEventListener('click', () => document.getElementById('sb-admin').classList.toggle('open'));
-document.getElementById('manage-topics-btn').addEventListener('click', () => showAdminPanel('topics'));
-document.getElementById('manage-classes-btn').addEventListener('click', () => showAdminPanel('classes'));
-document.getElementById('manage-users-btn').addEventListener('click', showUsersModal);
-document.getElementById('browse-chats-btn').addEventListener('click', () => showAdminPanel('chats'));
-document.getElementById('view-feedback-btn').addEventListener('click', () => showAdminPanel('feedback'));
+document.getElementById('manage-topics-btn').addEventListener('click', () => { closeMobileSidebar(); showAdminPanel('topics'); });
+document.getElementById('manage-classes-btn').addEventListener('click', () => { closeMobileSidebar(); showAdminPanel('classes'); });
+document.getElementById('manage-users-btn').addEventListener('click', () => { closeMobileSidebar(); showUsersModal(); });
+document.getElementById('browse-chats-btn').addEventListener('click', () => { closeMobileSidebar(); showAdminPanel('chats'); });
+document.getElementById('view-feedback-btn').addEventListener('click', () => { closeMobileSidebar(); showAdminPanel('feedback'); });
 document.getElementById('panel-back-btn').addEventListener('click', hideAdminPanel);
 
 /* ── Reveal buttons ── */
