@@ -65,6 +65,31 @@ def activate_user(user_id: str, caller: UserInToken = Depends(_admin)):
     return {"ok": True}
 
 
+@router.delete("/{user_id}")
+def delete_user(user_id: str, caller: UserInToken = Depends(_admin)):
+    if user_id == caller.id:
+        raise HTTPException(400, "Cannot delete yourself")
+    with get_db() as conn:
+        row = conn.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, "User not found")
+        # Reassign audit columns so NOT NULL FK constraints don't block the delete
+        for table, col in [
+            ("classes",         "created_by"),
+            ("topics",          "created_by"),
+            ("topic_documents", "uploaded_by"),
+            ("class_teachers",  "assigned_by"),
+            ("class_students",  "enrolled_by"),
+        ]:
+            conn.execute(
+                f"UPDATE {table} SET {col}=? WHERE {col}=?",
+                (caller.id, user_id),
+            )
+        conn.execute("UPDATE settings SET updated_by=NULL WHERE updated_by=?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id=?", (user_id,))
+    return {"ok": True}
+
+
 @router.patch("/{user_id}/password")
 def reset_password(user_id: str, body: UpdatePassword, caller: UserInToken = Depends(_admin)):
     ph = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode()

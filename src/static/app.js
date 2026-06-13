@@ -754,30 +754,35 @@ async function loadUserList() {
 
         </div>
 
-        <button class="ur-del" title="${u.is_active?'Deactivate':'Activate'} user" ${u.id===me?'disabled':''}>
 
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-
+        <button class="ur-toggle" title="${u.is_active?'Deactivate':'Activate'} user" ${u.id===me?'disabled':''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             ${u.is_active
-
-              ? '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/>'
-
-              : '<polyline points="20 6 9 17 4 12"/>'}
-
+              ? '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
+              : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'}
           </svg>
+        </button>
 
+        <button class="ur-del" title="Permanently delete user" ${u.id===me?'disabled':''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
         </button>`;
 
       if (u.id!==me) {
 
-        el.querySelector('.ur-del').addEventListener('click', async ()=>{
-
+        el.querySelector('.ur-toggle').addEventListener('click', async ()=>{
           const path=u.is_active?'deactivate':'activate';
-
           await fetch(`/users/${u.id}/${path}`,{method:'PATCH',headers:getHeaders()});
-
           loadUserList();
+        });
 
+        el.querySelector('.ur-del').addEventListener('click', async ()=>{
+          if (!confirm(`Permanently delete "${u.username}"?
+
+This cannot be undone. Their chats and enrollment history will be erased.`)) return;
+          await fetch(`/users/${u.id}`,{method:'DELETE',headers:getHeaders()});
+          loadUserList();
         });
 
       }
