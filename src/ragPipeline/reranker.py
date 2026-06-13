@@ -5,7 +5,7 @@ import json
 COHERE_RERANK_URL = "https://api.cohere.com/v2/rerank"
 
 
-def rerank(question, chunks, api_key, model, top_n=5):
+def rerank(question, chunks, api_key, model, top_n=None):
     """Re-order chunks by Cohere relevance score and return the top_n with updated ranks."""
     # Cohere only needs the raw text; metadata is carried through locally
     documents = [doc for _, doc, _, _ in chunks]
@@ -20,7 +20,7 @@ def rerank(question, chunks, api_key, model, top_n=5):
             "model": model,
             "query": question,
             "documents": documents,
-            "top_n": top_n,
+            "top_n": top_n if top_n is not None else len(documents),
         }),
     )
     body = rq.json()

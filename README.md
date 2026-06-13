@@ -206,7 +206,7 @@ Images are processed by a vision model that produces a textual description befor
 
 ```bash
 git clone https://github.com/darsh-io/rewise.git
-cd rag
+cd rewise
 pip install -r requirements.txt
 cp .env.example .env
 ```

@@ -109,7 +109,7 @@ async function submitQuery() {
     const res = await fetch(`/chats/${currentChatId}/query/stream`, {
       method:'POST',
       headers:getHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({question, top_k:topK}),
+      body:JSON.stringify({question}),
     });
 
     if (!res.ok) {

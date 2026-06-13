@@ -33,7 +33,6 @@ function showConfirm(msg, okLabel='Confirm') {
 const LS_TOKEN = 'rag_auth_token';
 const LS_USER  = 'rag_user_info';
 const LS_CLASS = 'rag_class_id';
-const LS_TOPK  = 'rag_topk';
 
 /* ── Storage helpers ── */
 

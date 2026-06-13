@@ -89,25 +89,6 @@
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   flex-shrink: 0;
 }
-.topk-row { display: flex; align-items: center; gap: 8px; }
-.topk-label { font-size: 11.5px; color: var(--text-muted); }
-.topk-control {
-  display: flex; align-items: center;
-  background: var(--bg-overlay); border: 1px solid var(--border-soft); border-radius: var(--r-xs); overflow: hidden;
-}
-.topk-btn {
-  width: 24px; height: 24px; background: transparent; border: none;
-  color: var(--text-secondary); cursor: pointer; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.12s, color 0.12s;
-}
-.topk-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.topk-val {
-  width: 28px; height: 24px; text-align: center; font-size: 11.5px; font-weight: 600;
-  color: var(--text-primary); display: flex; align-items: center; justify-content: center;
-  border-left: 1px solid var(--border-faint); border-right: 1px solid var(--border-faint);
-  font-variant-numeric: tabular-nums;
-}
 .sb-footer-right { display: flex; align-items: center; gap: 8px; }
 
 /* ── Connection dot ── */

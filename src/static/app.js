@@ -376,14 +376,6 @@ function renderTopicDropdown() {
 
 function setTopic(topicId) { currentTopicId=topicId; renderTopicChip(); }
 
-/* ── topK ── */
-
-let topK = parseInt(localStorage.getItem(LS_TOPK)||'5');
-const topkVal = document.getElementById('topk-val');
-topkVal.textContent = topK;
-document.getElementById('topk-dec').addEventListener('click', () => { if(topK>1){topK--;topkVal.textContent=topK;localStorage.setItem(LS_TOPK,topK);} });
-document.getElementById('topk-inc').addEventListener('click', () => { if(topK<20){topK++;topkVal.textContent=topK;localStorage.setItem(LS_TOPK,topK);} });
-
 /* ── New chat / output helpers ── */
 
 document.getElementById('new-chat-btn').addEventListener('click', () => {

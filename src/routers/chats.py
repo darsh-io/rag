@@ -22,7 +22,6 @@ class CreateChat(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str
-    top_k: int = 5
 
 
 # ── student/self chat endpoints ───────────────────────────────────────────────
@@ -154,7 +153,6 @@ def query_stream(
                 cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
                 cfg["chat_url"], cfg["llm_model"],
                 cfg["cohere_api_key"], cfg["reranker_model"],
-                body.top_k,
                 source_filter=source_filter,
             )
         except ValueError as e:

@@ -31,13 +31,48 @@ def generate_hypothetical_doc(question, api_key, chat_url, llm_model):
     return call_llm(messages, api_key, chat_url, llm_model)
 
 
-def build_rag_context(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5, source_filter=None):
+def _dynamic_cutoff(chunks, min_score=0.05, gap_threshold=0.40):
+    """
+    Return the subset of reranked chunks that are genuinely relevant.
+
+    Strategy:
+    1. Drop anything below min_score (absolute noise floor).
+    2. Among what remains, find the largest *relative* score drop between
+       consecutive chunks.  If that drop exceeds gap_threshold (e.g. 0.40 = 40%
+       of the higher score), cut there — it marks the boundary between the
+       relevant cluster and the trailing noise.
+    3. Always return at least one chunk.
+    """
+    if not chunks:
+        return chunks
+
+    above_floor = [c for c in chunks if c[3] >= min_score]
+    if not above_floor:
+        return [chunks[0]]
+
+    if len(above_floor) == 1:
+        return above_floor
+
+    max_rel_gap = 0.0
+    cut_at = len(above_floor)
+    for i in range(1, len(above_floor)):
+        prev_score = above_floor[i - 1][3]
+        curr_score = above_floor[i][3]
+        rel_gap = (prev_score - curr_score) / prev_score if prev_score > 0 else 0.0
+        if rel_gap > max_rel_gap:
+            max_rel_gap = rel_gap
+            cut_at = i
+
+    return above_floor[:cut_at] if max_rel_gap >= gap_threshold else above_floor
+
+
+def build_rag_context(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, source_filter=None):
     """Run HyDE retrieval, fusion, and reranking; return (chunks, messages, hyde_doc) ready for the LLM."""
     # HyDE: embed a hypothetical answer rather than the raw question for denser semantic match
     hyde_doc = generate_hypothetical_doc(question, api_key, chat_url, llm_model)
 
-    # Dense retrieval using the hypothetical doc embedding (top 10)
-    dense_results = chroma_query(hyde_doc, collection, api_key, embed_url, embed_model, n_results=10, source_filter=source_filter)
+    # Dense retrieval using the hypothetical doc embedding (top 20)
+    dense_results = chroma_query(hyde_doc, collection, api_key, embed_url, embed_model, n_results=20, source_filter=source_filter)
     dense_ranked = [
         {"id": id_, "doc": doc, "meta": meta, "rank": rank}
         for rank, (id_, doc, meta) in enumerate(zip(
@@ -56,11 +91,12 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
             "No documents have been ingested yet. Upload files inside a topic to get started."
         )
         raise ValueError(msg)
-    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=10)
+    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=20)
 
-    # RRF fusion → top 10, then Cohere rerank → top_k
-    fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=10)
-    chunks = rerank(question, fused, cohere_api_key, reranker_model, top_n=top_k)
+    # RRF fusion → top 20, Cohere scores all candidates, dynamic cutoff selects final set
+    fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=20)
+    all_reranked = rerank(question, fused, cohere_api_key, reranker_model)
+    chunks = _dynamic_cutoff(all_reranked)
 
     context_block = "\n\n".join(
         f"[{i}] Source: {meta['source']} | Page: {meta['page']}\n{doc}"
@@ -123,13 +159,13 @@ def call_llm_stream(messages, api_key, chat_url, llm_model):
             continue
 
 
-def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, top_k=5, source_filter=None):
+def rag_query(question, history, collection, api_key, embed_url, embed_model, chat_url, llm_model, cohere_api_key, reranker_model, source_filter=None):
     """Run the full RAG pipeline with HyDE — retrieve, fuse, rerank, then answer with conversation history."""
     chunks, messages, hyde_doc = build_rag_context(
         question, history, collection,
         api_key, embed_url, embed_model,
         chat_url, llm_model,
-        cohere_api_key, reranker_model, top_k,
+        cohere_api_key, reranker_model,
         source_filter=source_filter,
     )
     answer = call_llm(messages, api_key, chat_url, llm_model)
@@ -139,7 +175,7 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
     print(f"  QUESTION: {question}")
     print(sep)
     print(f"\n  HYPOTHETICAL DOC (HyDE)\n  {hyde_doc.strip()}\n")
-    print(f"\n  RETRIEVED CHUNKS (reranked, top {top_k})\n")
+    print(f"\n  RETRIEVED CHUNKS (dynamic cutoff: {len(chunks)} selected)\n")
     for i, doc, meta, score in chunks:
         preview = doc[:200].replace("\n", " ")
         print(f"  [{i}] {meta['source']} | p.{meta['page']} | relevance: {score:.4f}")
