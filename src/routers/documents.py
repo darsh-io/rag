@@ -43,8 +43,21 @@ def upload_document(
         "vision_model": cfg["vision_model"],
     }
 
+    # Remove any stale DB record + Chroma chunks for same filename in this topic
+    collection = get_collection(f"class_{class_id}", CHROMA_DIR)
+    with get_db() as conn:
+        stale = conn.execute(
+            "SELECT id, source_name FROM topic_documents WHERE topic_id=? AND filename=?",
+            (topic_id, filename),
+        ).fetchall()
+        for row in stale:
+            try:
+                collection.delete(where={"source": {"$eq": row["source_name"]}})
+            except Exception:
+                pass
+            conn.execute("DELETE FROM topic_documents WHERE id=?", (row["id"],))
+
     try:
-        collection = get_collection(f"class_{class_id}", CHROMA_DIR)
         chunks_ingested = ingest(
             tmp_path, collection,
             cfg["api_key"], cfg["embed_url"], cfg["embed_model"],

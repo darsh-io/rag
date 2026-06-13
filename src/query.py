@@ -51,8 +51,7 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
     filtered_data = get_filtered(collection, source_filter)
     if not filtered_data["ids"]:
         msg = (
-            "This topic's files aren't loaded — documents are stored in memory and cleared on server restart. "
-            "Re-upload them in Admin → Topics."
+            "No searchable content found for this topic. Try deleting the file in Admin → Topics and re-uploading it."
             if source_filter else
             "No documents have been ingested yet. Upload files inside a topic to get started."
         )

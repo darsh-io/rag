@@ -152,8 +152,11 @@ async function submitQuery() {
           ansText.insertBefore(document.createTextNode(evt.text), cursor);
           scrollEnd();
         } else if (evt.type==='error') {
+          if (thinkWrap.parentNode) thinkWrap.remove();
           cursor.remove();
-          ansText.appendChild(document.createTextNode(`\n\n⚠ ${evt.message}`));
+          ansSec.style.display='block';
+          const errPrefix = ansText.textContent ? '\n\n' : '';
+          ansText.appendChild(document.createTextNode(`${errPrefix}⚠ ${evt.message}`));
           setPipDone(pipEls,pipWrap);
         } else if (evt.type==='done') {
           cursor.remove(); setPipDone(pipEls,pipWrap);
