@@ -6,6 +6,7 @@ from src.db import get_db, new_id, now
 from src.deps import require_role, class_access, UserInToken
 from src.config import cfg, CHROMA_DIR
 from src.ragPipeline.vectorstore import get_collection, ingest
+from src.ragPipeline.bm25 import invalidate_bm25_cache
 
 router = APIRouter(tags=["documents"])
 _teacher_or_admin = require_role("teacher", "supradmin")
@@ -42,7 +43,8 @@ def _check_upload(data: bytes, filename: str) -> None:
 
 def _do_ingest(doc_id: str, tmp_path: str, class_id: str, source_name: str, vision_cfg: dict) -> None:
     """Blocking ingest — run in a thread. Updates DB status on completion or error."""
-    collection = get_collection(f"class_{class_id}", CHROMA_DIR)
+    collection_name = f"class_{class_id}"
+    collection = get_collection(collection_name, CHROMA_DIR)
     try:
         chunks_ingested = ingest(
             tmp_path, collection,
@@ -50,6 +52,7 @@ def _do_ingest(doc_id: str, tmp_path: str, class_id: str, source_name: str, visi
             vision_cfg=vision_cfg,
             source_name=source_name,
         )
+        invalidate_bm25_cache(collection_name)
         with get_db() as conn:
             conn.execute(
                 "UPDATE topic_documents SET status='ready', chunks_ingested=? WHERE id=?",
@@ -149,11 +152,13 @@ async def delete_document(
     if not row:
         raise HTTPException(404, "Document not found")
 
-    collection = get_collection(f"class_{class_id}", CHROMA_DIR)
+    collection_name = f"class_{class_id}"
+    collection = get_collection(collection_name, CHROMA_DIR)
     try:
         collection.delete(where={"source": {"$eq": row["source_name"]}})
     except Exception:
         pass
+    invalidate_bm25_cache(collection_name)
 
     with get_db() as conn:
         conn.execute("DELETE FROM topic_documents WHERE id=?", (doc_id,))

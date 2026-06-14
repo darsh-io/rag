@@ -1,10 +1,15 @@
 import math
+import threading
+
+_cache_lock = threading.Lock()
+# key: cache_key (str) → (ids, docs, metadatas, df, doc_freqs, avgdl, tokenized_corpus)
+_bm25_cache: dict = {}
 
 
 def _build_index(corpus):
     """Return (df, doc_freqs, avgdl) for BM25 scoring."""
-    df = {}  # document frequency per term
-    doc_freqs = []  # term frequency per document
+    df = {}
+    doc_freqs = []
 
     for doc in corpus:
         freqs = {}
@@ -39,16 +44,37 @@ def _bm25_scores(query_terms, corpus, df, doc_freqs, avgdl, k1=1.5, b=0.75):
     return scores
 
 
-def bm25_search(question, ids, docs, metadatas, top_n=10):
-    """Score all docs with BM25Okapi and return the top_n as ranked dicts."""
-    # lowercase + whitespace split is intentionally naive — consistent with how BM25Okapi tokenizes
-    tokenized_corpus = [doc.lower().split() for doc in docs]
-    query_terms = question.lower().split()
+def invalidate_bm25_cache(cache_key: str) -> None:
+    """Remove a cached BM25 index. Call after upload or delete for that collection."""
+    with _cache_lock:
+        _bm25_cache.pop(cache_key, None)
 
-    df, doc_freqs, avgdl = _build_index(tokenized_corpus)
+
+def get_or_build_corpus(ids, docs, metadatas, cache_key: str):
+    """Return (tokenized_corpus, df, doc_freqs, avgdl) from cache or built fresh."""
+    with _cache_lock:
+        if cache_key in _bm25_cache:
+            return _bm25_cache[cache_key]
+    tokenized = [doc.lower().split() for doc in docs]
+    df, doc_freqs, avgdl = _build_index(tokenized)
+    entry = (tokenized, df, doc_freqs, avgdl)
+    with _cache_lock:
+        _bm25_cache[cache_key] = entry
+    return entry
+
+
+def bm25_search(question, ids, docs, metadatas, top_n=10, cache_key: str = None):
+    """Score all docs with BM25Okapi and return the top_n as ranked dicts."""
+    if cache_key:
+        tokenized_corpus, df, doc_freqs, avgdl = get_or_build_corpus(ids, docs, metadatas, cache_key)
+    else:
+        # lowercase + whitespace split is intentionally naive — consistent with how BM25Okapi tokenizes
+        tokenized_corpus = [doc.lower().split() for doc in docs]
+        df, doc_freqs, avgdl = _build_index(tokenized_corpus)
+
+    query_terms = question.lower().split()
     scores = _bm25_scores(query_terms, tokenized_corpus, df, doc_freqs, avgdl)
 
-    # sort by score descending and take the top_n indices
     ranked_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_n]
     return [
         {"id": ids[i], "doc": docs[i], "meta": metadatas[i], "rank": rank}

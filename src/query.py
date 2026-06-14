@@ -95,7 +95,8 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
             "No documents have been ingested yet. Upload files inside a topic to get started."
         )
         raise ValueError(msg)
-    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=20)
+    collection_name = getattr(collection, "name", None)
+    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=20, cache_key=collection_name)
 
     # RRF fusion → top 20, Cohere scores all candidates, dynamic cutoff selects final set
     fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=20)
