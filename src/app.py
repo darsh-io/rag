@@ -1,17 +1,20 @@
 """FastAPI application — thin wiring layer."""
-import sys
+import os, sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 # ragPipeline files use bare imports (e.g. `from ragPipeline.chunk import`)
 # that assume src/ is on the path — add it so they resolve correctly.
 sys.path.insert(0, str(Path(__file__).parent))
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from src.db import init_db
+from src.limiter import limiter
 from src.routers import auth, users, classes, topics, documents, chats, feedback
 
 
@@ -22,10 +25,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="rewise", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+_cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:8000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in _cors_origins],
     allow_methods=["*"],
     allow_headers=["*"],
 )

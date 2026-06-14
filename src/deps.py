@@ -2,21 +2,32 @@
 import os, jwt
 from pathlib import Path
 from typing import NamedTuple
+from datetime import datetime, timezone, timedelta
 from fastapi import Header, HTTPException, Path as FPath, Depends
 from src.db import get_db
 
-_SECRET_PATH = Path(__file__).parent.parent / "config" / ".server_secret"
+_SECRET_PATH     = Path(__file__).parent.parent / "config" / ".server_secret"
+_JWT_SECRET_PATH = Path(__file__).parent.parent / "config" / ".jwt_secret"
 _ALGORITHM = "HS256"
+_ACCESS_TTL  = timedelta(days=7)
+_REFRESH_TTL = timedelta(days=30)
+
+
+def _load_or_create(path: Path) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        return path.read_bytes().hex()
+    secret = os.urandom(32)
+    path.write_bytes(secret)
+    return secret.hex()
+
+
+def _encryption_secret() -> str:
+    return _load_or_create(_SECRET_PATH)
 
 
 def _jwt_secret() -> str:
-    _SECRET_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if _SECRET_PATH.exists():
-        return _SECRET_PATH.read_bytes().hex()
-    import os as _os
-    secret = _os.urandom(32)
-    _SECRET_PATH.write_bytes(secret)
-    return secret.hex()
+    return _load_or_create(_JWT_SECRET_PATH)
 
 
 class UserInToken(NamedTuple):
@@ -26,11 +37,34 @@ class UserInToken(NamedTuple):
 
 
 def make_token(user_id: str, username: str, role: str) -> str:
+    exp = datetime.now(timezone.utc) + _ACCESS_TTL
     return jwt.encode(
-        {"sub": user_id, "username": username, "role": role},
+        {"sub": user_id, "username": username, "role": role, "type": "access", "exp": exp},
         _jwt_secret(),
         algorithm=_ALGORITHM,
     )
+
+
+def make_refresh_token(user_id: str) -> str:
+    exp = datetime.now(timezone.utc) + _REFRESH_TTL
+    return jwt.encode(
+        {"sub": user_id, "type": "refresh", "exp": exp},
+        _jwt_secret(),
+        algorithm=_ALGORITHM,
+    )
+
+
+def verify_refresh_token(token: str) -> str:
+    """Decode a refresh token and return the user_id, or raise HTTPException."""
+    try:
+        payload = jwt.decode(token, _jwt_secret(), algorithms=[_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "Refresh token expired")
+    except jwt.PyJWTError:
+        raise HTTPException(401, "Invalid refresh token")
+    if payload.get("type") != "refresh":
+        raise HTTPException(401, "Not a refresh token")
+    return payload["sub"]
 
 
 def get_current_user(authorization: str = Header(default=None)) -> UserInToken:
@@ -39,8 +73,12 @@ def get_current_user(authorization: str = Header(default=None)) -> UserInToken:
     token = authorization.split(" ", 1)[1]
     try:
         payload = jwt.decode(token, _jwt_secret(), algorithms=[_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "Token expired")
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid or expired token")
+    if payload.get("type") == "refresh":
+        raise HTTPException(401, "Use access token, not refresh token")
     return UserInToken(id=payload["sub"], username=payload["username"], role=payload["role"])
 
 

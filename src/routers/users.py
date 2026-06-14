@@ -92,6 +92,8 @@ def delete_user(user_id: str, caller: UserInToken = Depends(_admin)):
 
 @router.patch("/{user_id}/password")
 def reset_password(user_id: str, body: UpdatePassword, caller: UserInToken = Depends(_admin)):
+    if len(body.password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
     ph = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode()
     with get_db() as conn:
         conn.execute("UPDATE users SET pass_hash=? WHERE id=?", (ph, user_id))

@@ -130,6 +130,15 @@ def init_db() -> None:
     with get_db() as conn:
         conn.executescript(_SCHEMA)
     _seed_supradmin()
+    _seed_settings()
+
+
+def _seed_settings() -> None:
+    with get_db() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO settings (key,value,updated_at) VALUES (?,?,?)",
+            ("self_registration_enabled", "1", now()),
+        )
 
 
 def _seed_supradmin() -> None:

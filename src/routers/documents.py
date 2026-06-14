@@ -10,6 +10,36 @@ from src.ragPipeline.vectorstore import get_collection, ingest
 router = APIRouter(tags=["documents"])
 _teacher_or_admin = require_role("teacher", "supradmin")
 
+_MAX_BYTES = int(os.getenv("MAX_UPLOAD_MB", "20")) * 1024 * 1024
+
+_ALLOWED_MIME_PREFIXES = (
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument",  # docx, pptx, xlsx
+    "application/vnd.ms-",                             # older Office formats
+    "application/msword",
+    "application/vnd.oasis.opendocument",              # odt, ods, odp
+    "text/plain",
+    "text/csv",
+    "application/epub+zip",
+)
+
+
+def _check_upload(data: bytes, filename: str) -> None:
+    if len(data) > _MAX_BYTES:
+        raise HTTPException(413, f"File exceeds {os.getenv('MAX_UPLOAD_MB', '20')} MB limit")
+    try:
+        import magic
+        mime = magic.from_buffer(data, mime=True)
+        if not any(mime.startswith(p) for p in _ALLOWED_MIME_PREFIXES):
+            raise HTTPException(415, f"Unsupported file type: {mime}")
+    except ImportError:
+        # python-magic unavailable — fall back to extension check only
+        ext = Path(filename).suffix.lower()
+        allowed_exts = {".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls",
+                        ".odt", ".ods", ".odp", ".txt", ".csv", ".epub"}
+        if ext not in allowed_exts:
+            raise HTTPException(415, f"Unsupported file extension: {ext}")
+
 
 @router.post("/classes/{class_id}/topics/{topic_id}/documents")
 def upload_document(
@@ -31,8 +61,11 @@ def upload_document(
     if not ext:
         ext = ".pdf"
 
+    data = file.file.read()
+    _check_upload(data, filename)
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-        tmp.write(file.file.read())
+        tmp.write(data)
         tmp_path = tmp.name
 
     source_name = f"{Path(filename).stem}_topic{topic_id[:8]}"
