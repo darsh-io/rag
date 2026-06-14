@@ -58,6 +58,28 @@ def delete_class(class_id: str, caller: UserInToken = Depends(_admin)):
     return {"ok": True}
 
 
+@router.patch("/{class_id}/deactivate")
+def deactivate_class(class_id: str, caller: UserInToken = Depends(_admin)):
+    with get_db() as conn:
+        row = conn.execute("SELECT id FROM classes WHERE id=?", (class_id,)).fetchone()
+        if not row:
+            from fastapi import HTTPException
+            raise HTTPException(404, "Class not found")
+        conn.execute("UPDATE classes SET is_active=0 WHERE id=?", (class_id,))
+    return {"ok": True}
+
+
+@router.patch("/{class_id}/activate")
+def activate_class(class_id: str, caller: UserInToken = Depends(_admin)):
+    with get_db() as conn:
+        row = conn.execute("SELECT id FROM classes WHERE id=?", (class_id,)).fetchone()
+        if not row:
+            from fastapi import HTTPException
+            raise HTTPException(404, "Class not found")
+        conn.execute("UPDATE classes SET is_active=1 WHERE id=?", (class_id,))
+    return {"ok": True}
+
+
 # ── teacher / student assignment ──────────────────────────────────────────────
 
 @router.post("/{class_id}/teachers")
