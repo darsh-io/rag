@@ -16,7 +16,7 @@ async function fetchSessions() {
   try {
     const r = await fetch(`/classes/${currentClassId}/chats/me`, {headers:getHeaders()});
     if (!r.ok) return;
-    sessions = await r.json();
+    sessions = (await r.json()).items ?? [];
     renderSessions();
   } catch {}
 }
