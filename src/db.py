@@ -126,9 +126,9 @@ def get_db():
 
 
 def init_db() -> None:
-    """Create schema and seed the supradmin account from env."""
-    with get_db() as conn:
-        conn.executescript(_SCHEMA)
+    """Run migrations, then seed the supradmin account and default settings."""
+    from src.migrations import run_migrations
+    run_migrations()
     _seed_supradmin()
     _seed_settings()
 

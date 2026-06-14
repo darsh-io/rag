@@ -86,7 +86,7 @@ def list_topic_documents(
 ):
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id,filename,source_name,chunks_ingested,uploaded_at "
+            "SELECT id,filename,source_name,chunks_ingested,uploaded_at,status,error_message "
             "FROM topic_documents WHERE topic_id=? ORDER BY uploaded_at",
             (topic_id,),
         ).fetchall()
