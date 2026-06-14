@@ -178,6 +178,25 @@ async function ingestAndAssign(file, topicId, pill, filesWrap) {
   try {
     const r = await fetch(`/classes/${currentClassId}/topics/${topicId}/documents`, {method:'POST', headers:getHeaders(), body:form});
     if (!r.ok) { pill.textContent=`${file.name} — Upload failed.`; pill.classList.add('error'); return; }
+    const { id: docId } = await r.json();
+    pill.textContent = `${file.name} — Processing…`;
+
+    // Poll until status is 'ready' or 'error'
+    while (true) {
+      await new Promise(res => setTimeout(res, 3000));
+      try {
+        const sr = await fetch(`/classes/${currentClassId}/topics/${topicId}/documents/${docId}/status`, {headers:getHeaders()});
+        if (!sr.ok) break;
+        const s = await sr.json();
+        if (s.status === 'ready') break;
+        if (s.status === 'error') {
+          pill.textContent = `${file.name} — Error: ${s.error_message||'ingestion failed'}`;
+          pill.classList.add('error');
+          return;
+        }
+      } catch { break; }
+    }
+
     pill.textContent=`✓ ${file.name}`; pill.classList.add('done');
     await fetchTopics();
     loadDocumentTags(filesWrap, topicId);

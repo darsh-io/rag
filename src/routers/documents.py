@@ -1,5 +1,5 @@
-"""Document upload → Chroma ingest → DB record."""
-import os, tempfile
+"""Document upload → background Chroma ingest → DB record."""
+import asyncio, os, tempfile
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from src.db import get_db, new_id, now
@@ -14,10 +14,10 @@ _MAX_BYTES = int(os.getenv("MAX_UPLOAD_MB", "20")) * 1024 * 1024
 
 _ALLOWED_MIME_PREFIXES = (
     "application/pdf",
-    "application/vnd.openxmlformats-officedocument",  # docx, pptx, xlsx
-    "application/vnd.ms-",                             # older Office formats
+    "application/vnd.openxmlformats-officedocument",
+    "application/vnd.ms-",
     "application/msword",
-    "application/vnd.oasis.opendocument",              # odt, ods, odp
+    "application/vnd.oasis.opendocument",
     "text/plain",
     "text/csv",
     "application/epub+zip",
@@ -33,7 +33,6 @@ def _check_upload(data: bytes, filename: str) -> None:
         if not any(mime.startswith(p) for p in _ALLOWED_MIME_PREFIXES):
             raise HTTPException(415, f"Unsupported file type: {mime}")
     except ImportError:
-        # python-magic unavailable — fall back to extension check only
         ext = Path(filename).suffix.lower()
         allowed_exts = {".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls",
                         ".odt", ".ods", ".odp", ".txt", ".csv", ".epub"}
@@ -41,8 +40,36 @@ def _check_upload(data: bytes, filename: str) -> None:
             raise HTTPException(415, f"Unsupported file extension: {ext}")
 
 
-@router.post("/classes/{class_id}/topics/{topic_id}/documents")
-def upload_document(
+def _do_ingest(doc_id: str, tmp_path: str, class_id: str, source_name: str, vision_cfg: dict) -> None:
+    """Blocking ingest — run in a thread. Updates DB status on completion or error."""
+    collection = get_collection(f"class_{class_id}", CHROMA_DIR)
+    try:
+        chunks_ingested = ingest(
+            tmp_path, collection,
+            cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
+            vision_cfg=vision_cfg,
+            source_name=source_name,
+        )
+        with get_db() as conn:
+            conn.execute(
+                "UPDATE topic_documents SET status='ready', chunks_ingested=? WHERE id=?",
+                (chunks_ingested, doc_id),
+            )
+    except Exception as e:
+        with get_db() as conn:
+            conn.execute(
+                "UPDATE topic_documents SET status='error', error_message=? WHERE id=?",
+                (str(e), doc_id),
+            )
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+@router.post("/classes/{class_id}/topics/{topic_id}/documents", status_code=202)
+async def upload_document(
     class_id: str,
     topic_id: str,
     file: UploadFile = File(...),
@@ -61,7 +88,7 @@ def upload_document(
     if not ext:
         ext = ".pdf"
 
-    data = file.file.read()
+    data = await file.read()
     _check_upload(data, filename)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
@@ -90,31 +117,24 @@ def upload_document(
                 pass
             conn.execute("DELETE FROM topic_documents WHERE id=?", (row["id"],))
 
-    try:
-        chunks_ingested = ingest(
-            tmp_path, collection,
-            cfg["api_key"], cfg["embed_url"], cfg["embed_model"],
-            vision_cfg=vision_cfg,
-            source_name=source_name,
-        )
-    except Exception as e:
-        raise HTTPException(422, str(e))
-    finally:
-        os.unlink(tmp_path)
-
     doc_id = new_id()
     with get_db() as conn:
         conn.execute(
-            "INSERT INTO topic_documents (id,topic_id,filename,source_name,chunks_ingested,uploaded_by,uploaded_at) "
-            "VALUES (?,?,?,?,?,?,?)",
-            (doc_id, topic_id, filename, source_name, chunks_ingested, caller.id, now()),
+            "INSERT INTO topic_documents "
+            "(id,topic_id,filename,source_name,chunks_ingested,uploaded_by,uploaded_at,status) "
+            "VALUES (?,?,?,?,0,?,?,'processing')",
+            (doc_id, topic_id, filename, source_name, caller.id, now()),
         )
 
-    return {"id": doc_id, "filename": filename, "chunks_ingested": chunks_ingested}
+    asyncio.create_task(
+        asyncio.to_thread(_do_ingest, doc_id, tmp_path, class_id, source_name, vision_cfg)
+    )
+
+    return {"id": doc_id, "filename": filename, "status": "processing"}
 
 
 @router.delete("/classes/{class_id}/topics/{topic_id}/documents/{doc_id}")
-def delete_document(
+async def delete_document(
     class_id: str,
     topic_id: str,
     doc_id: str,

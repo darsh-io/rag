@@ -91,3 +91,21 @@ def list_topic_documents(
             (topic_id,),
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+@router.get("/{topic_id}/documents/{doc_id}/status")
+def document_status(
+    class_id: str,
+    topic_id: str,
+    doc_id: str,
+    caller: UserInToken = Depends(get_current_user),
+    cls=Depends(class_access("member")),
+):
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id,status,chunks_ingested,error_message FROM topic_documents WHERE id=? AND topic_id=?",
+            (doc_id, topic_id),
+        ).fetchone()
+    if not row:
+        raise HTTPException(404, "Document not found")
+    return dict(row)
