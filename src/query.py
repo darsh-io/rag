@@ -1,6 +1,10 @@
-import requests
 import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import requests
+from src.http_client import post_with_retry, post_with_retry_stream
 from ragPipeline.vectorstore import query as chroma_query, get_filtered
 from ragPipeline.reranker import rerank
 from ragPipeline.bm25 import bm25_search
@@ -115,7 +119,7 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
 
 def call_llm(messages, api_key, chat_url, llm_model):
     """Send a messages list to the OpenRouter chat API and return the assistant's reply."""
-    rq = requests.post(
+    rq = post_with_retry(
         url=chat_url,
         headers={"Authorization": f"Bearer {api_key}"},
         data=json.dumps({"model": llm_model, "messages": messages}),
@@ -130,11 +134,10 @@ def call_llm(messages, api_key, chat_url, llm_model):
 
 def call_llm_stream(messages, api_key, chat_url, llm_model):
     """Yield text deltas from the LLM as they arrive using OpenRouter SSE streaming."""
-    rq = requests.post(
+    rq = post_with_retry_stream(
         url=chat_url,
         headers={"Authorization": f"Bearer {api_key}"},
         data=json.dumps({"model": llm_model, "messages": messages, "stream": True}),
-        stream=True,
     )
     for line in rq.iter_lines():
         if not line:

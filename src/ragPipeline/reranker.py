@@ -1,5 +1,8 @@
-import requests
 import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from src.http_client import post_with_retry
 
 # v2 is the current Cohere endpoint; v1 is deprecated
 COHERE_RERANK_URL = "https://api.cohere.com/v2/rerank"
@@ -7,10 +10,9 @@ COHERE_RERANK_URL = "https://api.cohere.com/v2/rerank"
 
 def rerank(question, chunks, api_key, model, top_n=None):
     """Re-order chunks by Cohere relevance score and return the top_n with updated ranks."""
-    # Cohere only needs the raw text; metadata is carried through locally
     documents = [doc for _, doc, _, _ in chunks]
 
-    rq = requests.post(
+    rq = post_with_retry(
         url=COHERE_RERANK_URL,
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -29,7 +31,6 @@ def rerank(question, chunks, api_key, model, top_n=None):
 
     reranked = []
     for new_rank, result in enumerate(body["results"], start=1):
-        # result["index"] maps back to the original chunks list position
         _, doc, meta, _ = chunks[result["index"]]
         reranked.append((new_rank, doc, meta, result["relevance_score"]))
 
