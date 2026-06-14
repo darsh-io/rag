@@ -16,4 +16,5 @@ config/feedback.json
 config/chroma/
 config/rewise.db
 config/*.log
+logs/
 CLAUDE.md
