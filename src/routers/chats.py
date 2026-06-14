@@ -268,8 +268,13 @@ async def query_stream(
                     (ts, body.question[:60], chat_id),
                 )
 
-        await asyncio.to_thread(_persist)
-        log.info("stream_done", extra={"chat_id": chat_id, "message_id": asst_msg_id})
+        try:
+            await asyncio.to_thread(_persist)
+            log.info("stream_done", extra={"chat_id": chat_id, "message_id": asst_msg_id})
+        except Exception as e:
+            log.error("persist_failed", extra={"chat_id": chat_id, "error": str(e)}, exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Answer generated but could not be saved: {e}' })}\n\n"
+            return
         yield f"data: {json.dumps({'type': 'done', 'message_id': asst_msg_id})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

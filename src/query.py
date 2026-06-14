@@ -5,10 +5,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import requests
 from src.http_client import post_with_retry, post_with_retry_stream
+from src.logger import get_logger
 from ragPipeline.vectorstore import query as chroma_query, get_filtered
 from ragPipeline.reranker import rerank
 from ragPipeline.bm25 import bm25_search
 from ragPipeline.rrf import reciprocal_rank_fusion
+
+log = get_logger("rewise.query")
 
 
 SYSTEM_PROMPT = """\
@@ -174,20 +177,11 @@ def rag_query(question, history, collection, api_key, embed_url, embed_model, ch
     )
     answer = call_llm(messages, api_key, chat_url, llm_model)
 
-    sep = "─" * 72
-    print(f"\n{sep}")
-    print(f"  QUESTION: {question}")
-    print(sep)
-    print(f"\n  HYPOTHETICAL DOC (HyDE)\n  {hyde_doc.strip()}\n")
-    print(f"\n  RETRIEVED CHUNKS (dynamic cutoff: {len(chunks)} selected)\n")
-    for i, doc, meta, score in chunks:
-        preview = doc[:200].replace("\n", " ")
-        print(f"  [{i}] {meta['source']} | p.{meta['page']} | relevance: {score:.4f}")
-        print(f"      {preview}…")
-        print()
-    print(sep)
-    print("\n  ANSWER\n")
-    print(f"  {answer.strip()}")
-    print(f"\n{sep}\n")
+    log.info("rag_query_done", extra={
+        "question": question[:80],
+        "hyde_doc": hyde_doc.strip()[:120],
+        "chunks": len(chunks),
+        "chunk_sources": [meta["source"] for _, _, meta, _ in chunks],
+    })
 
     return answer, chunks
