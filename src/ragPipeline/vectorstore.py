@@ -1,6 +1,9 @@
+import logging
 import chromadb
 from ragPipeline.chunk import chunk_file
 from ragPipeline.embeddings import getEmbeddings, getEmbeddingsBatch
+
+log = logging.getLogger("rewise.vectorstore")
 
 
 def get_collection(collection_name="documents", persist_dir=None):
@@ -32,7 +35,7 @@ def ingest(file_path, collection, api_key, api_url, model, vision_cfg=None, sour
     embeddings = getEmbeddingsBatch(api_key, api_url, model, texts)
 
     collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)
-    print(f"Ingested {len(chunks)} chunks from {file_path}")
+    log.info("ingested", extra={"file": str(file_path), "chunks": len(chunks)})
     return len(chunks)
 
 

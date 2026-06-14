@@ -3,6 +3,9 @@ import sqlite3, uuid, os
 from pathlib import Path
 from datetime import datetime, timezone
 from contextlib import contextmanager
+import logging
+
+log = logging.getLogger("rewise.db")
 
 DB_PATH = Path(__file__).parent.parent / "config" / "rewise.db"
 
@@ -158,7 +161,7 @@ def _seed_supradmin() -> None:
                 "INSERT INTO users (id,username,pass_hash,role,created_at) VALUES (?,?,?,?,?)",
                 (uid, username, ph, "supradmin", now()),
             )
-            print(f"[rewise] Supradmin created → {username}")
+            log.info("supradmin_created", extra={"username": username})
 
 
 def now() -> str:

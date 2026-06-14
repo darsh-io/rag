@@ -1,5 +1,5 @@
 """FastAPI application — thin wiring layer."""
-import os, sys
+import os, sys, uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -15,7 +15,10 @@ from slowapi.errors import RateLimitExceeded
 
 from src.db import init_db
 from src.limiter import limiter
+from src.logger import get_logger
 from src.routers import auth, users, classes, topics, documents, chats, feedback
+
+log = get_logger("rewise.app")
 
 
 @asynccontextmanager
@@ -35,6 +38,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    rid = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = rid
+    log.info("request", extra={"method": request.method, "path": request.url.path, "status": response.status_code, "request_id": rid})
+    return response
+
 
 app.include_router(auth.router)
 app.include_router(users.router)
