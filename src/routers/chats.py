@@ -32,20 +32,28 @@ class QueryRequest(BaseModel):
 async def list_my_chats(
     class_id: str,
     topic_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
     caller: UserInToken = Depends(get_current_user),
     cls=Depends(class_access("member")),
 ):
     def _query():
         with get_db() as conn:
-            q = "SELECT id,title,topic_id,created_at,updated_at FROM chats WHERE user_id=? AND class_id=?"
-            params = [caller.id, class_id]
+            base = "FROM chats WHERE user_id=? AND class_id=?"
+            params_count = [caller.id, class_id]
+            params_rows  = [caller.id, class_id]
             if topic_id:
-                q += " AND topic_id=?"
-                params.append(topic_id)
-            q += " ORDER BY updated_at DESC"
-            return conn.execute(q, params).fetchall()
-    rows = await asyncio.to_thread(_query)
-    return [dict(r) for r in rows]
+                base += " AND topic_id=?"
+                params_count.append(topic_id)
+                params_rows.append(topic_id)
+            total = conn.execute(f"SELECT COUNT(*) {base}", params_count).fetchone()[0]
+            rows  = conn.execute(
+                f"SELECT id,title,topic_id,created_at,updated_at {base} ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+                params_rows + [limit, offset],
+            ).fetchall()
+            return total, rows
+    total, rows = await asyncio.to_thread(_query)
+    return {"items": [dict(r) for r in rows], "total": total, "limit": limit, "offset": offset}
 
 
 @router.post("/classes/{class_id}/chats")
@@ -255,25 +263,33 @@ async def list_class_chats(
     class_id: str,
     user_id: Optional[str] = None,
     topic_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
     caller: UserInToken = Depends(_teacher_or_admin),
     cls=Depends(class_access("teacher")),
 ):
     def _query():
         with get_db() as conn:
-            q = ("SELECT c.id, c.title, c.topic_id, c.user_id, u.username, c.created_at, c.updated_at "
-                 "FROM chats c JOIN users u ON u.id=c.user_id "
-                 "WHERE c.class_id=?")
+            where = "WHERE c.class_id=?"
             params = [class_id]
             if user_id:
-                q += " AND c.user_id=?"
+                where += " AND c.user_id=?"
                 params.append(user_id)
             if topic_id:
-                q += " AND c.topic_id=?"
+                where += " AND c.topic_id=?"
                 params.append(topic_id)
-            q += " ORDER BY c.updated_at DESC"
-            return conn.execute(q, params).fetchall()
-    rows = await asyncio.to_thread(_query)
-    return [dict(r) for r in rows]
+            total = conn.execute(
+                f"SELECT COUNT(*) FROM chats c JOIN users u ON u.id=c.user_id {where}", params
+            ).fetchone()[0]
+            rows = conn.execute(
+                f"SELECT c.id, c.title, c.topic_id, c.user_id, u.username, c.created_at, c.updated_at "
+                f"FROM chats c JOIN users u ON u.id=c.user_id {where} "
+                f"ORDER BY c.updated_at DESC LIMIT ? OFFSET ?",
+                params + [limit, offset],
+            ).fetchall()
+            return total, rows
+    total, rows = await asyncio.to_thread(_query)
+    return {"items": [dict(r) for r in rows], "total": total, "limit": limit, "offset": offset}
 
 
 @router.get("/classes/{class_id}/chats/{chat_id}/view")

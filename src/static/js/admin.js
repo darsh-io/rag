@@ -14,7 +14,8 @@ async function loadUserList() {
   try {
     const r = await fetch('/users', {headers:getHeaders()});
     if (!r.ok) { list.innerHTML='<p style="font-size:12px;color:var(--red);padding:6px 4px">Failed to load users.</p>'; return; }
-    const users = await r.json();
+    const data = await r.json();
+    const users = data.items ?? data;
     const me = getUser().id;
     list.innerHTML = '';
     users.forEach(u => {
@@ -236,7 +237,8 @@ async function renderClassCards(container) {
       fetch('/users',   {headers:getHeaders()}),
     ]);
     const allClasses = clsRes.ok ? await clsRes.json() : [];
-    const allUsers   = usrRes.ok ? await usrRes.json() : [];
+    const usrData    = usrRes.ok ? await usrRes.json() : [];
+    const allUsers   = usrData.items ?? usrData;
     const teachers   = allUsers.filter(u=>u.role==='teacher'&&u.is_active);
     const students   = allUsers.filter(u=>u.role==='student'&&u.is_active);
     container.innerHTML = '';
@@ -337,7 +339,8 @@ async function renderChatsList(container) {
   try {
     const r = await fetch(`/classes/${currentClassId}/chats?${qs}`, {headers:getHeaders()});
     if (!r.ok) { container.innerHTML='<p class="admin-empty">Failed to load.</p>'; return; }
-    const chats = await r.json();
+    const data = await r.json();
+    const chats = data.items ?? data;
     container.innerHTML = '';
     if (!chats.length) { container.innerHTML='<p class="admin-empty">No chats found.</p>'; return; }
     chats.forEach(c => {
@@ -422,7 +425,8 @@ async function renderFeedbackList(container) {
   try {
     const r = await fetch(`/classes/${currentClassId}/feedback?${qs}`, {headers:getHeaders()});
     if (!r.ok) { container.innerHTML='<p class="admin-empty">Failed to load.</p>'; return; }
-    const fb = await r.json();
+    const data = await r.json();
+    const fb = data.items ?? data;
     container.innerHTML = '';
     if (!fb.length) { container.innerHTML='<p class="admin-empty">No feedback yet.</p>'; return; }
     fb.forEach(f => {

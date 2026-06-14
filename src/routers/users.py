@@ -22,12 +22,14 @@ class UpdatePassword(BaseModel):
 
 
 @router.get("")
-def list_users(user: UserInToken = Depends(_admin)):
+def list_users(limit: int = 50, offset: int = 0, user: UserInToken = Depends(_admin)):
     with get_db() as conn:
+        total = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         rows = conn.execute(
-            "SELECT id, username, role, display_name, created_at, is_active FROM users ORDER BY created_at"
+            "SELECT id, username, role, display_name, created_at, is_active FROM users ORDER BY created_at LIMIT ? OFFSET ?",
+            (limit, offset),
         ).fetchall()
-    return [dict(r) for r in rows]
+    return {"items": [dict(r) for r in rows], "total": total, "limit": limit, "offset": offset}
 
 
 @router.post("")

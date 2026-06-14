@@ -54,14 +54,13 @@ def list_class_feedback(
     class_id: str,
     rating: Optional[str] = None,
     user_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
     caller: UserInToken = Depends(_teacher_or_admin),
     cls=Depends(class_access("teacher")),
 ):
     with get_db() as conn:
-        q = (
-            "SELECT m.id, m.feedback_rating, m.feedback_comment, m.created_at, "
-            "c.id AS chat_id, c.title AS chat_title, c.user_id, u.username, "
-            "c.topic_id "
+        base = (
             "FROM chat_messages m "
             "JOIN chats c ON c.id=m.chat_id "
             "JOIN users u ON u.id=c.user_id "
@@ -69,11 +68,16 @@ def list_class_feedback(
         )
         params = [class_id]
         if rating:
-            q += " AND m.feedback_rating=?"
+            base += " AND m.feedback_rating=?"
             params.append(rating)
         if user_id:
-            q += " AND c.user_id=?"
+            base += " AND c.user_id=?"
             params.append(user_id)
-        q += " ORDER BY m.created_at DESC"
-        rows = conn.execute(q, params).fetchall()
-    return [dict(r) for r in rows]
+        total = conn.execute(f"SELECT COUNT(*) {base}", params).fetchone()[0]
+        rows = conn.execute(
+            f"SELECT m.id, m.feedback_rating, m.feedback_comment, m.created_at, "
+            f"c.id AS chat_id, c.title AS chat_title, c.user_id, u.username, c.topic_id "
+            f"{base} ORDER BY m.created_at DESC LIMIT ? OFFSET ?",
+            params + [limit, offset],
+        ).fetchall()
+    return {"items": [dict(r) for r in rows], "total": total, "limit": limit, "offset": offset}
