@@ -99,7 +99,10 @@ def build_rag_context(question, history, collection, api_key, embed_url, embed_m
         )
         raise ValueError(msg)
     collection_name = getattr(collection, "name", None)
-    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=20, cache_key=collection_name)
+    # Only cache the full-collection BM25 index; with a source_filter the corpus is a
+    # different (smaller) slice, so skip the cache to avoid an index-out-of-range on ids[].
+    bm25_cache_key = collection_name if source_filter is None else None
+    sparse_ranked = bm25_search(question, filtered_data["ids"], filtered_data["documents"], filtered_data["metadatas"], top_n=20, cache_key=bm25_cache_key)
 
     # RRF fusion → top 20, Cohere scores all candidates, dynamic cutoff selects final set
     fused = reciprocal_rank_fusion([dense_ranked, sparse_ranked], top_n=20)
