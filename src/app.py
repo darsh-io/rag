@@ -62,7 +62,36 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    import os
+    from src.db import get_db, DB_PATH
+    from src.config import CHROMA_DIR, cfg
+
+    checks = {}
+
+    # SQLite
+    try:
+        with get_db() as conn:
+            conn.execute("SELECT 1").fetchone()
+        checks["sqlite"] = "ok"
+    except Exception as e:
+        checks["sqlite"] = f"error: {e}"
+
+    # ChromaDB
+    try:
+        import chromadb
+        chromadb.PersistentClient(path=CHROMA_DIR).heartbeat()
+        checks["chroma"] = "ok"
+    except Exception as e:
+        checks["chroma"] = f"error: {e}"
+
+    # API keys present
+    checks["openrouter_key"] = "ok" if cfg.get("api_key") else "missing"
+    checks["cohere_key"]     = "ok" if cfg.get("cohere_api_key") else "missing"
+
+    degraded = any(v != "ok" for v in checks.values())
+    status_code = 503 if degraded else 200
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"ok": not degraded, "checks": checks}, status_code=status_code)
 
 
 @app.get("/")
