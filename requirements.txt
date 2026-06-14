@@ -16,3 +16,10 @@ Pillow
 PyJWT
 bcrypt
 cryptography
+slowapi
+python-magic-bin
+python-json-logger
+pytest
+pytest-asyncio
+httpx
+pytest-cov

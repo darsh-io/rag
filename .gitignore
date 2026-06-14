@@ -4,12 +4,16 @@ misc/
 CLAUDE.md
 __pycache__/
 *.pyc
+*.pyo
+.venv/
 chroma_db/
 config/users.json
 config/topics.json
 config/chats/
 config/.server_secret
+config/.jwt_secret
 config/feedback.json
 config/chroma/
 config/rewise.db
+config/*.log
 CLAUDE.md
