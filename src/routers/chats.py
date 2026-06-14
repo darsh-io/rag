@@ -8,8 +8,11 @@ from src.db import get_db, new_id, now
 from src.deps import get_current_user, require_role, class_access, own_chat, UserInToken
 from src.encryption import encrypt, decrypt
 from src.config import cfg, CHROMA_DIR
+from src.logger import get_logger
 from src.ragPipeline.vectorstore import get_collection
 from src.query import build_rag_context, call_llm_stream
+
+log = get_logger("rewise.chats")
 
 router = APIRouter(tags=["chats"])
 _teacher_or_admin = require_role("teacher", "supradmin")
@@ -169,8 +172,11 @@ async def query_stream(
     collection = get_collection(f"class_{class_id}", CHROMA_DIR)
 
     async def event_stream():
+        log.info("stream_start", extra={"chat_id": chat_id, "question": body.question[:80]})
+
         # RAG context (blocking) in a thread
         try:
+            log.info("rag_context_start", extra={"chat_id": chat_id, "source_filter": source_filter})
             chunks, messages, hyde_doc = await asyncio.to_thread(
                 build_rag_context,
                 body.question, history, collection,
@@ -179,10 +185,13 @@ async def query_stream(
                 cfg["cohere_api_key"], cfg["reranker_model"],
                 source_filter,
             )
+            log.info("rag_context_done", extra={"chat_id": chat_id, "chunks": len(chunks)})
         except ValueError as e:
+            log.warning("rag_context_value_error", extra={"chat_id": chat_id, "error": str(e)})
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
             return
         except Exception as e:
+            log.error("rag_context_error", extra={"chat_id": chat_id, "error": str(e)}, exc_info=True)
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
             return
 
@@ -193,27 +202,35 @@ async def query_stream(
         yield f"data: {json.dumps({'type': 'hyde', 'text': hyde_doc})}\n\n"
         yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
 
-        # LLM streaming — run the blocking generator in a thread, feed via asyncio.Queue
+        # LLM streaming — capture the running loop HERE (async context), close over it in _stream
         queue: asyncio.Queue = asyncio.Queue()
+        loop = asyncio.get_running_loop()  # safe: we are in a coroutine
 
         def _stream():
+            log.info("llm_stream_thread_start", extra={"chat_id": chat_id})
             try:
+                delta_count = 0
                 for delta in call_llm_stream(messages, cfg["api_key"], cfg["chat_url"], cfg["llm_model"]):
-                    asyncio.get_event_loop().call_soon_threadsafe(queue.put_nowait, delta)
+                    loop.call_soon_threadsafe(queue.put_nowait, delta)
+                    delta_count += 1
+                log.info("llm_stream_thread_done", extra={"chat_id": chat_id, "deltas": delta_count})
             except Exception as e:
-                asyncio.get_event_loop().call_soon_threadsafe(queue.put_nowait, ("__error__", str(e)))
+                log.error("llm_stream_thread_error", extra={"chat_id": chat_id, "error": str(e)}, exc_info=True)
+                loop.call_soon_threadsafe(queue.put_nowait, ("__error__", str(e)))
             finally:
-                asyncio.get_event_loop().call_soon_threadsafe(queue.put_nowait, _SENTINEL)
+                loop.call_soon_threadsafe(queue.put_nowait, _SENTINEL)
 
-        loop = asyncio.get_event_loop()
         stream_task = loop.run_in_executor(None, _stream)
+        log.info("llm_stream_executor_started", extra={"chat_id": chat_id})
 
         full_answer = []
         while True:
             item = await queue.get()
             if item is _SENTINEL:
+                log.info("llm_stream_sentinel", extra={"chat_id": chat_id, "answer_chars": sum(len(t) for t in full_answer)})
                 break
             if isinstance(item, tuple) and item[0] == "__error__":
+                log.error("llm_stream_queue_error", extra={"chat_id": chat_id, "error": item[1]})
                 yield f"data: {json.dumps({'type': 'error', 'message': item[1]})}\n\n"
                 await stream_task
                 return
@@ -224,6 +241,7 @@ async def query_stream(
         answer_text = "".join(full_answer)
 
         if not answer_text.strip():
+            log.warning("llm_stream_empty_response", extra={"chat_id": chat_id})
             yield f"data: {json.dumps({'type': 'error', 'message': 'The model returned an empty response. The context may be too long, or the model hit a rate limit.'})}\n\n"
             return
 
@@ -251,6 +269,7 @@ async def query_stream(
                 )
 
         await asyncio.to_thread(_persist)
+        log.info("stream_done", extra={"chat_id": chat_id, "message_id": asst_msg_id})
         yield f"data: {json.dumps({'type': 'done', 'message_id': asst_msg_id})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
